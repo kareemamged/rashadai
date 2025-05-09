@@ -252,10 +252,9 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true });
         try {
-          // If name is updated, update avatar as well (if no custom avatar)
-          if (userData.name && !userData.avatar && !currentUser.avatar?.includes('http')) {
-            userData.avatar = getDefaultAvatar(userData.name);
-          }
+          // Only update avatar if explicitly provided in userData
+          // Do NOT automatically generate a new avatar when name is updated
+          // This prevents overwriting existing avatars when updating other profile fields
 
           // Create a complete profile data object with all fields
           const completeProfileData = {
