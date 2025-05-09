@@ -11,48 +11,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Helper functions for auth
 export const signUpWithEmail = async (email: string, password: string, userData?: any) => {
   try {
-    // First, try to sign up the user
+    // Make sure userData is properly formatted
+    const formattedUserData = {
+      name: userData?.name || email.split('@')[0],
+      avatar: userData?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || email.split('@')[0])}&background=random`,
+      country_code: userData?.country_code || 'US',
+      language: userData?.language || 'ar',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Sign up with Supabase - only store data in auth.users metadata
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: userData,
+        data: formattedUserData,
       }
     });
 
     if (error) throw error;
 
-    // If signup is successful and we have a user, try to create a profile
-    if (data.user) {
-      try {
-        // Check if the profiles table exists
-        const { error: checkError } = await supabase
-          .from('profiles')
-          .select('id')
-          .limit(1);
-
-        // If the table exists (no error), try to create a profile
-        if (!checkError) {
-          // Try to insert a new profile
-          await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              email: data.user.email,
-              name: userData?.name || email.split('@')[0],
-              avatar: userData?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || email.split('@')[0])}&background=random`,
-              country_code: userData?.country_code,
-              language: userData?.language || 'ar',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .select();
-        }
-      } catch (profileError) {
-        // Log the error but don't fail the signup
-        console.warn('Could not create profile, but user was created:', profileError);
-      }
-    }
+    // We'll skip creating a profile record for now
+    // The profile will be created later when needed
+    // This avoids issues with RLS policies during signup
 
     return data;
   } catch (error) {
