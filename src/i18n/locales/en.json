@@ -169,6 +169,7 @@
         "passwordLength": "Password must be at least 6 characters",
         "emailExists": "Email is already registered",
         "invalidPassword": "Invalid password. Must be at least 6 characters",
+        "databaseError": "Database error while saving new user. Please try again later.",
         "generic": "Failed to create account. Please try again."
       }
     },

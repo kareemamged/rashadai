@@ -10,16 +10,55 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper functions for auth
 export const signUpWithEmail = async (email: string, password: string, userData?: any) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData,
-    }
-  });
+  try {
+    // First, try to sign up the user
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData,
+      }
+    });
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+
+    // If signup is successful and we have a user, try to create a profile
+    if (data.user) {
+      try {
+        // Check if the profiles table exists
+        const { error: checkError } = await supabase
+          .from('profiles')
+          .select('id')
+          .limit(1);
+
+        // If the table exists (no error), try to create a profile
+        if (!checkError) {
+          // Try to insert a new profile
+          await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: data.user.email,
+              name: userData?.name || email.split('@')[0],
+              avatar: userData?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData?.name || email.split('@')[0])}&background=random`,
+              country_code: userData?.country_code,
+              language: userData?.language || 'ar',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select();
+        }
+      } catch (profileError) {
+        // Log the error but don't fail the signup
+        console.warn('Could not create profile, but user was created:', profileError);
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in signUpWithEmail:', error);
+    throw error;
+  }
 };
 
 export const signInWithEmail = async (email: string, password: string) => {
@@ -33,8 +72,46 @@ export const signInWithEmail = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  try {
+    // Try to sign out with Supabase
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      // If there's a CORS error, we'll handle it gracefully
+      if (error.message && (
+          error.message.includes('CORS') ||
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('NetworkError')
+        )) {
+        console.warn('CORS error during signout. Clearing local session instead:', error);
+
+        // Clear local storage manually as a fallback
+        if (typeof window !== 'undefined') {
+          // Clear Supabase-related items from localStorage
+          const storageKeys = Object.keys(localStorage);
+          const supabaseKeys = storageKeys.filter(key =>
+            key.startsWith('sb-') ||
+            key.includes('supabase') ||
+            key === 'auth-storage'
+          );
+
+          // Remove each Supabase-related item
+          supabaseKeys.forEach(key => {
+            localStorage.removeItem(key);
+          });
+
+          // Return without throwing an error
+          return;
+        }
+      }
+
+      // For other errors, throw normally
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error in signOut:', error);
+    throw error;
+  }
 };
 
 export const getCurrentUser = async () => {
@@ -225,8 +302,12 @@ export const updateProfile = async (userId: string, profileData: any): Promise<a
 
       // Update user metadata in auth
       await updateUserProfile(userMetadata);
+
+      // Log success for debugging
+      console.log('Auth metadata updated successfully');
     } catch (authError) {
-      // Continue anyway to try updating the profiles table
+      // Log error but continue
+      console.warn('Failed to update auth metadata:', authError);
     }
 
     // Check if the profiles table exists
@@ -237,57 +318,68 @@ export const updateProfile = async (userId: string, profileData: any): Promise<a
 
     // If there's an error, it means the table doesn't exist or there's an issue accessing it
     if (checkError) {
-      // Try to create the table if it doesn't exist
-      if (checkError.message.includes('does not exist')) {
-        const tableCreated = await createProfilesTable();
-        if (tableCreated) {
-          // If the table was created successfully, try again
-          return updateProfile(userId, profileData);
-        }
-      }
+      console.warn('Profiles table does not exist or cannot be accessed:', checkError.message);
 
-      // Return the data that was passed in
-      return { id: userId, ...profileData };
+      // Return the data that was passed in since we've already updated the auth metadata
+      return { id: userId, ...profileData, updated_at: new Date().toISOString() };
     }
 
     // If the table exists, try to update the data
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        ...profileData,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: userId,
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-    if (error) {
-      // If this is the first time for this user, try to insert a new record
-      if (error.message.includes('violates row-level security policy')) {
-        const { data: insertData, error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            ...profileData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single();
+      if (error) {
+        console.warn('Error updating profile:', error.message);
 
-        if (insertError) {
-          return { id: userId, ...profileData };
+        // If this is the first time for this user, try to insert a new record
+        if (error.message.includes('violates row-level security policy') ||
+            error.message.includes('No rows found')) {
+          try {
+            const { data: insertData, error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: userId,
+                ...profileData,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (insertError) {
+              console.warn('Error inserting new profile:', insertError.message);
+              return { id: userId, ...profileData, updated_at: new Date().toISOString() };
+            }
+
+            console.log('New profile created successfully');
+            return insertData;
+          } catch (insertCatchError) {
+            console.warn('Exception during profile insert:', insertCatchError);
+            return { id: userId, ...profileData, updated_at: new Date().toISOString() };
+          }
         }
 
-        return insertData;
+        // Return the data that was passed in
+        return { id: userId, ...profileData, updated_at: new Date().toISOString() };
       }
 
-      return { id: userId, ...profileData };
+      console.log('Profile updated successfully');
+      return data;
+    } catch (upsertError) {
+      console.warn('Exception during profile upsert:', upsertError);
+      return { id: userId, ...profileData, updated_at: new Date().toISOString() };
     }
-
-    return data;
   } catch (error) {
-    return { id: userId, ...profileData };
+    console.error('Unhandled error in updateProfile:', error);
+    return { id: userId, ...profileData, updated_at: new Date().toISOString() };
   }
 };
 

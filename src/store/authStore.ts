@@ -123,10 +123,27 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await supabaseSignOut();
+          // If we get here, signout was successful
           set({ user: null });
         } catch (error) {
           console.error('Signout error:', error);
-          throw error;
+
+          // Even if there's an error with Supabase signout (like CORS),
+          // we still want to clear the local user state
+          set({ user: null });
+
+          // Clear local storage manually as a fallback
+          if (typeof window !== 'undefined') {
+            try {
+              // Clear Zustand store
+              localStorage.removeItem('auth-storage');
+
+              // Reload the page to ensure all state is cleared
+              window.location.href = '/';
+            } catch (localStorageError) {
+              console.error('Error clearing local storage:', localStorageError);
+            }
+          }
         } finally {
           set({ isLoading: false });
         }

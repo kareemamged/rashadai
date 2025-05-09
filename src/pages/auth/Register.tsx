@@ -63,10 +63,20 @@ const Register = () => {
       // Handle Supabase errors
       if (err.message?.includes('email already registered')) {
         setError(t('auth.register.errors.emailExists'));
+        showToast(t('auth.register.errors.emailExists'), 'error');
       } else if (err.message?.includes('password')) {
         setError(t('auth.register.errors.invalidPassword'));
+        showToast(t('auth.register.errors.invalidPassword'), 'error');
+      } else if (err.message?.includes('Database error saving new user')) {
+        // This is likely due to missing profiles table
+        setError(t('auth.register.errors.databaseError'));
+        showToast(t('auth.register.errors.databaseError'), 'error');
+
+        // Log more detailed error for debugging
+        console.error('Database error during signup. Please check if the profiles table exists in Supabase.');
       } else {
         setError(err.message || t('auth.register.errors.generic'));
+        showToast(t('auth.register.errors.generic'), 'error');
       }
     } finally {
       setIsLoading(false);
