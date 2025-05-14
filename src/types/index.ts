@@ -15,10 +15,6 @@ export interface Post {
   category: 'news' | 'tip';
   publishedDate: string;
   imageUrl?: string;
-  author: {
-    name: string;
-    avatarUrl?: string;
-  };
 }
 
 export interface Comment {

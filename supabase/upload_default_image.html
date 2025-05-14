@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رفع صورة افتراضية إلى Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    .container {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+      min-height: 100px;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+    #preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>رفع صورة افتراضية إلى Supabase</h1>
+  
+  <div class="container">
+    <div class="input-group">
+      <label for="supabase-url">Supabase URL:</label>
+      <input type="text" id="supabase-url" value="https://voiwxfqryobznmxgpamq.supabase.co" />
+    </div>
+    
+    <div class="input-group">
+      <label for="supabase-key">Supabase Anon Key:</label>
+      <input type="text" id="supabase-key" placeholder="أدخل مفتاح Supabase الخاص بك" />
+    </div>
+    
+    <div class="input-group">
+      <label for="image-file">اختر صورة افتراضية (اختياري):</label>
+      <input type="file" id="image-file" accept="image/*" />
+    </div>
+    
+    <button id="generate-btn">إنشاء وتحميل صورة افتراضية</button>
+    <button id="upload-btn" disabled>رفع الصورة المختارة</button>
+    
+    <div>
+      <h3>معاينة الصورة:</h3>
+      <canvas id="preview-canvas" width="800" height="600"></canvas>
+    </div>
+    
+    <div class="result" id="result">
+      <p>النتائج ستظهر هنا...</p>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const supabaseUrlInput = document.getElementById('supabase-url');
+      const supabaseKeyInput = document.getElementById('supabase-key');
+      const imageFileInput = document.getElementById('image-file');
+      const generateBtn = document.getElementById('generate-btn');
+      const uploadBtn = document.getElementById('upload-btn');
+      const previewCanvas = document.getElementById('preview-canvas');
+      const resultDiv = document.getElementById('result');
+      
+      let selectedFile = null;
+      
+      // إنشاء صورة افتراضية
+      function generateDefaultImage() {
+        const ctx = previewCanvas.getContext('2d');
+        
+        // تعيين لون خلفية رمادي
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+        
+        // إضافة نص
+        ctx.fillStyle = '#666666';
+        ctx.font = 'bold 30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Default Image', previewCanvas.width / 2, previewCanvas.height / 2);
+      }
+      
+      // عرض الصورة المختارة
+      imageFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          selectedFile = file;
+          uploadBtn.disabled = false;
+          
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+              const ctx = previewCanvas.getContext('2d');
+              ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+              ctx.drawImage(img, 0, 0, previewCanvas.width, previewCanvas.height);
+            };
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      // إنشاء وتحميل صورة افتراضية
+      generateBtn.addEventListener('click', async function() {
+        if (!supabaseKeyInput.value) {
+          resultDiv.innerHTML = '<p class="error">يرجى إدخال مفتاح Supabase</p>';
+          return;
+        }
+        
+        generateDefaultImage();
+        
+        try {
+          resultDiv.innerHTML = '<p>جاري إنشاء وتحميل الصورة الافتراضية...</p>';
+          
+          // إنشاء عميل Supabase
+          const supabase = supabase.createClient(supabaseUrlInput.value, supabaseKeyInput.value);
+          
+          // تحويل الصورة إلى blob
+          const blob = await new Promise(resolve => previewCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+          
+          // إنشاء ملف من الـ blob
+          const file = new File([blob], 'default.webp', { type: 'image/jpeg' });
+          
+          // رفع الملف إلى Supabase
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload('blog/default.webp', file, {
+              cacheControl: '3600',
+              upsert: true
+            });
+          
+          if (error) {
+            throw error;
+          }
+          
+          // الحصول على الرابط العام للصورة
+          const { data: urlData } = supabase.storage
+            .from('images')
+            .getPublicUrl('blog/default.webp');
+          
+          resultDiv.innerHTML = `
+            <p class="success">تم رفع الصورة الافتراضية بنجاح!</p>
+            <p>الرابط العام: <a href="${urlData.publicUrl}" target="_blank">${urlData.publicUrl}</a></p>
+          `;
+          
+        } catch (error) {
+          resultDiv.innerHTML = `<p class="error">خطأ: ${error.message}</p>`;
+        }
+      });
+      
+      // رفع الصورة المختارة
+      uploadBtn.addEventListener('click', async function() {
+        if (!supabaseKeyInput.value) {
+          resultDiv.innerHTML = '<p class="error">يرجى إدخال مفتاح Supabase</p>';
+          return;
+        }
+        
+        if (!selectedFile) {
+          resultDiv.innerHTML = '<p class="error">يرجى اختيار صورة أولاً</p>';
+          return;
+        }
+        
+        try {
+          resultDiv.innerHTML = '<p>جاري رفع الصورة...</p>';
+          
+          // إنشاء عميل Supabase
+          const supabase = supabase.createClient(supabaseUrlInput.value, supabaseKeyInput.value);
+          
+          // رفع الملف إلى Supabase
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload('blog/default.webp', selectedFile, {
+              cacheControl: '3600',
+              upsert: true
+            });
+          
+          if (error) {
+            throw error;
+          }
+          
+          // الحصول على الرابط العام للصورة
+          const { data: urlData } = supabase.storage
+            .from('images')
+            .getPublicUrl('blog/default.webp');
+          
+          resultDiv.innerHTML = `
+            <p class="success">تم رفع الصورة بنجاح!</p>
+            <p>الرابط العام: <a href="${urlData.publicUrl}" target="_blank">${urlData.publicUrl}</a></p>
+          `;
+          
+        } catch (error) {
+          resultDiv.innerHTML = `<p class="error">خطأ: ${error.message}</p>`;
+        }
+      });
+      
+      // إنشاء صورة افتراضية عند تحميل الصفحة
+      generateDefaultImage();
+    });
+  </script>
+</body>
+</html>

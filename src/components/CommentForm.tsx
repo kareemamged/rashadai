@@ -15,22 +15,25 @@ const CommentForm: React.FC<CommentFormProps> = ({ postId, onCommentSubmit }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const language = i18n.language || 'en';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!content.trim()) return;
 
     setIsSubmitting(true);
 
-    // Get user name or email for the comment
-    const authorName = user?.name || user?.email || 'Anonymous';
+    try {
+      // Get user name or email for the comment
+      const authorName = user?.name || user?.email || 'Anonymous';
 
-    // Simulate network request
-    setTimeout(() => {
-      onCommentSubmit(authorName, content);
+      // Call the callback directly
+      await onCommentSubmit(authorName, content);
       setContent('');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   return (

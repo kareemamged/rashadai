@@ -1,5 +1,5 @@
 import React from 'react';
-import { Comment } from '../types';
+import { Comment } from '../store/blogStore';
 import { timeAgo } from '../utils/dateFormatter';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +9,8 @@ interface CommentItemProps {
 
 const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
   const { i18n } = useTranslation();
-  const initials = comment.author
+  const authorName = comment.author_name || 'Anonymous';
+  const initials = authorName
     .split(' ')
     .map(name => name[0])
     .join('')
@@ -23,8 +24,8 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
       <div className="flex-1">
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="flex justify-between items-center mb-2">
-            <h4 className={`font-medium text-gray-800 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>{comment.author}</h4>
-            <span className="text-xs text-gray-500">{timeAgo(comment.createdAt, i18n.language)}</span>
+            <h4 className={`font-medium text-gray-800 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>{authorName}</h4>
+            <span className="text-xs text-gray-500">{timeAgo(comment.created_at, i18n.language)}</span>
           </div>
           <p className={`text-gray-700 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>{comment.content}</p>
         </div>

@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getPostById } from '../data/posts';
-import { getCommentsByPostId, addComment } from '../data/comments';
-import { Comment } from '../types';
+import { Comment, Post } from '../types';
 import { formatDate } from '../utils/dateFormatter';
+import { getImageUrl, checkImageUrl } from '../utils/imageUtils';
+import { DEFAULT_BLOG_IMAGE } from '../constants/images';
 import BlogHeader from '../components/BlogHeader';
 import Footer from '../components/Footer';
 import CommentItem from '../components/CommentItem';
 import CommentForm from '../components/CommentForm';
-import { ArrowLeft, Calendar, MessageSquare, ThumbsUp, ThumbsDown, AlertCircle, Globe } from 'lucide-react';
+import { ArrowLeft, Calendar, MessageSquare, ThumbsUp, ThumbsDown, AlertCircle, Globe, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabase';
+import { useBlogStore } from '../store/blogStore';
+import { showSuccessNotification, showErrorNotification } from '../stores/notificationStore';
 
 const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,17 +23,70 @@ const PostDetailPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState<'en' | 'ar'>(i18n.language === 'ar' ? 'ar' : 'en');
 
-  const [comments, setComments] = useState<Comment[]>([]);
+  // استخدام مخزن المدونة
+  const {
+    fetchComments,
+    createComment,
+    comments,
+    isLoadingComments,
+    commentsError
+  } = useBlogStore();
+
+  const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [userReaction, setUserReaction] = useState<'like' | 'dislike' | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>(DEFAULT_BLOG_IMAGE);
+  const [imageError, setImageError] = useState<boolean>(false);
 
   // Update language when i18n.language changes
   useEffect(() => {
     setLanguage(i18n.language === 'ar' ? 'ar' : 'en');
   }, [i18n.language]);
+
+  // Function to convert Supabase blog post to our Post type
+  const convertSupabasePost = (post: any): Post => {
+    // دالة للتحقق من وجود رابط الصورة وإصلاحه إذا كان غير صحيح
+    const getImageUrl = (url: string | undefined): string => {
+      if (!url) return '/images/blog/default.webp';
+
+      // إذا كان الرابط يبدأ بـ http أو https، فهو صحيح
+      if (url.startsWith('http')) return url;
+
+      // إذا كان الرابط يبدأ بـ /، فهو مسار محلي
+      if (url.startsWith('/')) return url;
+
+      // إذا كان الرابط يبدأ بـ blog/، فهو مسار في مخزن Supabase
+      if (url.startsWith('blog/')) {
+        return `https://voiwxfqryobznmxgpamq.supabase.co/storage/v1/object/public/images/${url}`;
+      }
+
+      // إذا كان الرابط لا يحتوي على مسار، فهو اسم ملف في مجلد blog
+      return `https://voiwxfqryobznmxgpamq.supabase.co/storage/v1/object/public/images/blog/${url}`;
+    };
+
+    return {
+      id: post.id,
+      title: {
+        en: post.title_en || post.title || 'Untitled',
+        ar: post.title_ar || 'بدون عنوان'
+      },
+      summary: {
+        en: post.summary_en || (post.content_en?.substring(0, 150) + '...') || (post.content?.substring(0, 150) + '...') || '',
+        ar: post.summary_ar || (post.content_ar?.substring(0, 150) + '...') || ''
+      },
+      content: {
+        en: post.content_en || post.content || '',
+        ar: post.content_ar || ''
+      },
+      category: post.category || 'tip',
+      publishedDate: post.created_at || new Date().toISOString(),
+      imageUrl: getImageUrl(post.image_url)
+    };
+  };
 
   useEffect(() => {
     if (!id) {
@@ -38,92 +94,150 @@ const PostDetailPage: React.FC = () => {
       return;
     }
 
-    // Simulate data loading
-    setIsLoading(true);
+    const fetchPost = async () => {
+      setIsLoading(true);
+      setError(null);
 
-    setTimeout(() => {
-      const post = getPostById(id);
-      if (!post) {
-        navigate('/blog');
-        return;
-      }
+      try {
+        // Fetch post from Supabase
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-      const postComments = getCommentsByPostId(id);
-      setComments(postComments);
+        if (error) throw error;
 
-      // Initialize likes and dislikes (in a real app, this would come from the database)
-      // For now, we'll generate random numbers
-      const initialLikes = Math.floor(Math.random() * 50) + 5;
-      const initialDislikes = Math.floor(Math.random() * 10) + 1;
-      setLikes(initialLikes);
-      setDislikes(initialDislikes);
+        if (!data) {
+          navigate('/blog');
+          return;
+        }
 
-      // Check if user has already reacted (in a real app, this would be stored in the database)
-      // For now, we'll check localStorage
-      if (user) {
-        const storedReactions = localStorage.getItem('postReactions');
-        if (storedReactions) {
-          try {
-            const reactions = JSON.parse(storedReactions);
-            if (reactions[id]) {
-              setUserReaction(reactions[id]);
+        // Set default author name if not available
+        data.author_name = 'Admin';
+
+        // Convert to our Post type
+        const formattedPost = convertSupabasePost(data);
+        setPost(formattedPost);
+
+        // Set image URL with proper formatting
+        if (formattedPost.imageUrl) {
+          const fixedUrl = getImageUrl(formattedPost.imageUrl);
+          setImageUrl(fixedUrl);
+
+          // التحقق من صحة الرابط
+          if (fixedUrl.startsWith('http')) {
+            try {
+              const isValid = await checkImageUrl(fixedUrl);
+              if (!isValid) {
+                console.log('Image URL is invalid:', fixedUrl);
+                setImageUrl(DEFAULT_BLOG_IMAGE);
+              }
+            } catch (err) {
+              console.error('Error checking image URL:', err);
+              setImageUrl(DEFAULT_BLOG_IMAGE);
             }
-          } catch (error) {
-            console.error('Error parsing stored reactions:', error);
+          }
+        } else {
+          // إذا لم يكن هناك رابط صورة، استخدم الصورة البديلة
+          setImageUrl(DEFAULT_BLOG_IMAGE);
+        }
+
+        // Set likes and dislikes
+        setLikes(data.likes_count || 0);
+        setDislikes(data.dislikes_count || 0);
+
+        // Fetch comments from database
+        if (id) {
+          fetchComments(id);
+        }
+
+        // Check if user has already reacted
+        if (user) {
+          const storedReactions = localStorage.getItem('postReactions');
+          if (storedReactions) {
+            try {
+              const reactions = JSON.parse(storedReactions);
+              if (reactions[id]) {
+                setUserReaction(reactions[id]);
+              }
+            } catch (error) {
+              console.error('Error parsing stored reactions:', error);
+            }
           }
         }
+
+        // Increment view count
+        await supabase
+          .from('blog_posts')
+          .update({ views: (data.views || 0) + 1 })
+          .eq('id', id);
+
+      } catch (err: any) {
+        console.error('Error fetching post:', err);
+        setError(err.message || 'Failed to load post');
+      } finally {
+        setIsLoading(false);
+        // Scroll to top
+        window.scrollTo(0, 0);
       }
+    };
 
-      setIsLoading(false);
-
-      // Scroll to top
-      window.scrollTo(0, 0);
-    }, 300);
+    fetchPost();
   }, [id, navigate, user]);
 
-  const post = id ? getPostById(id) : null;
-  console.log("Found post:", post);
-
-  const handleReaction = (reaction: 'like' | 'dislike') => {
+  const handleReaction = async (reaction: 'like' | 'dislike') => {
     if (!user) {
       setShowLoginPrompt(true);
       setTimeout(() => setShowLoginPrompt(false), 3000);
       return;
     }
 
-    if (!id) return;
+    if (!id || !post) return;
+
+    // Calculate new likes and dislikes counts
+    let newLikes = likes;
+    let newDislikes = dislikes;
 
     // Update state based on current reaction
     if (userReaction === reaction) {
       // User is toggling off their reaction
       setUserReaction(null);
       if (reaction === 'like') {
-        setLikes(prev => Math.max(0, prev - 1));
+        newLikes = Math.max(0, likes - 1);
+        setLikes(newLikes);
       } else {
-        setDislikes(prev => Math.max(0, prev - 1));
+        newDislikes = Math.max(0, dislikes - 1);
+        setDislikes(newDislikes);
       }
     } else {
       // User is changing their reaction or adding a new one
       if (userReaction === 'like' && reaction === 'dislike') {
         // Switching from like to dislike
-        setLikes(prev => Math.max(0, prev - 1));
-        setDislikes(prev => prev + 1);
+        newLikes = Math.max(0, likes - 1);
+        newDislikes = dislikes + 1;
+        setLikes(newLikes);
+        setDislikes(newDislikes);
       } else if (userReaction === 'dislike' && reaction === 'like') {
         // Switching from dislike to like
-        setDislikes(prev => Math.max(0, prev - 1));
-        setLikes(prev => prev + 1);
+        newDislikes = Math.max(0, dislikes - 1);
+        newLikes = likes + 1;
+        setDislikes(newDislikes);
+        setLikes(newLikes);
       } else {
         // New reaction
         if (reaction === 'like') {
-          setLikes(prev => prev + 1);
+          newLikes = likes + 1;
+          setLikes(newLikes);
         } else {
-          setDislikes(prev => prev + 1);
+          newDislikes = dislikes + 1;
+          setDislikes(newDislikes);
         }
       }
       setUserReaction(reaction);
     }
 
-    // Store user reaction in localStorage (in a real app, this would be sent to the server)
+    // Store user reaction in localStorage
     try {
       const storedReactions = localStorage.getItem('postReactions') || '{}';
       const reactions = JSON.parse(storedReactions);
@@ -137,22 +251,117 @@ const PostDetailPage: React.FC = () => {
       }
 
       localStorage.setItem('postReactions', JSON.stringify(reactions));
+
+      // Update reaction in database
+      try {
+        const { error } = await supabase
+          .from('blog_posts')
+          .update({
+            likes_count: newLikes,
+            dislikes_count: newDislikes
+          })
+          .eq('id', id);
+
+        if (error) {
+          console.error('Error updating post reactions:', error);
+        }
+      } catch (err) {
+        console.error('Error updating post reactions:', err);
+      }
     } catch (error) {
       console.error('Error storing reaction:', error);
     }
   };
 
-  const handleCommentSubmit = (author: string, content: string) => {
-    if (!id) return;
+  const handleCommentSubmit = async (author: string, content: string) => {
+    if (!id) {
+      console.error('No post ID available');
+      return;
+    }
 
-    const newComment = addComment(id, user ? user.name || user.email : author, content);
-    setComments(prev => [newComment, ...prev]);
+    try {
+      console.log('Submitting comment for post ID:', id);
+      console.log('Comment content:', content);
+      console.log('User info:', user);
+
+      // إنشاء كائن التعليق
+      const commentData = {
+        post_id: id,
+        user_id: user?.id || '',
+        author_name: user ? user.name || user.email : author,
+        author_email: user?.email || '',
+        content: content,
+        status: 'pending' // التعليقات تكون معلقة حتى يوافق عليها المشرف
+      };
+
+      console.log('Comment data being sent:', commentData);
+
+      // إضافة التعليق إلى قاعدة البيانات
+      const commentId = await createComment(commentData);
+      console.log('Comment created with ID:', commentId);
+
+      if (commentId) {
+        // إعادة جلب التعليقات لتحديث القائمة
+        await fetchComments(id);
+        console.log('Comments refreshed');
+
+        // إظهار إشعار نجاح للمستخدم
+        showSuccessNotification(
+          language === 'en' ? 'Comment Submitted' : 'تم إرسال التعليق',
+          language === 'en'
+            ? 'Your comment has been submitted and is awaiting approval.'
+            : 'تم إرسال تعليقك وهو في انتظار الموافقة.'
+        );
+      } else {
+        console.error('Failed to create comment - no ID returned');
+        showErrorNotification(
+          language === 'en' ? 'Submission Failed' : 'فشل الإرسال',
+          language === 'en'
+            ? 'There was a problem submitting your comment. Please try again.'
+            : 'حدثت مشكلة أثناء إرسال تعليقك. يرجى المحاولة مرة أخرى.'
+        );
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      showErrorNotification(
+        language === 'en' ? 'Error' : 'خطأ',
+        language === 'en'
+          ? 'There was a problem submitting your comment. Please try again.'
+          : 'حدثت مشكلة أثناء إرسال تعليقك. يرجى المحاولة مرة أخرى.'
+      );
+    }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
+        <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-red-700 mb-2">Error Loading Post</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+            <Link
+              to="/blog"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+            >
+              Return to Blog
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -184,12 +393,26 @@ const PostDetailPage: React.FC = () => {
         </div>
 
         <article className="bg-white rounded-xl shadow-md overflow-hidden">
-          {post.imageUrl && (
+          {!imageError && (
             <div className="h-64 sm:h-80 md:h-96 w-full overflow-hidden">
               <img
-                src={post.imageUrl}
+                src={imageUrl}
                 alt={post.title[language as keyof typeof post.title]}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // إذا فشل تحميل الصورة، استخدم الصورة الافتراضية
+                  console.log('Image failed to load, using default image');
+                  console.log('Failed image URL:', imageUrl);
+
+                  if (imageUrl !== DEFAULT_BLOG_IMAGE) {
+                    // محاولة استخدام الصورة الافتراضية
+                    setImageUrl(DEFAULT_BLOG_IMAGE);
+                  } else {
+                    // إذا كانت الصورة الافتراضية أيضًا غير متوفرة
+                    console.log('Default image not found either!');
+                    setImageError(true);
+                  }
+                }}
               />
             </div>
           )}
@@ -238,23 +461,6 @@ const PostDetailPage: React.FC = () => {
                 <Globe className={`h-4 w-4 ${language === 'en' ? 'mr-1' : 'ml-1'}`} />
                 {language === 'en' ? 'العربية' : 'English'}
               </button>
-            </div>
-
-            <div className={`w-full`}>
-              <div className={`w-full flex items-center mb-8 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                {post.author.avatarUrl ? (
-                  <img
-                    src={post.author.avatarUrl}
-                    alt={post.author.name}
-                    className={`w-10 h-10 rounded-full ${language === 'en' ? 'mr-3' : 'ml-3'} object-cover`}
-                  />
-                ) : (
-                  <div className={`w-10 h-10 rounded-full bg-gray-200 ${language === 'en' ? 'mr-3' : 'ml-3'} flex items-center justify-center`}>
-                    {post.author.name.charAt(0)}
-                  </div>
-                )}
-                <span className="font-medium text-gray-800">{post.author.name}</span>
-              </div>
             </div>
 
             <div
@@ -350,7 +556,21 @@ const PostDetailPage: React.FC = () => {
             </div>
           )}
 
-          {comments.length === 0 ? (
+          {isLoadingComments ? (
+            <div className="py-12 bg-white rounded-lg shadow-md text-center">
+              <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-500">
+                {language === 'en' ? 'Loading comments...' : 'جاري تحميل التعليقات...'}
+              </p>
+            </div>
+          ) : commentsError ? (
+            <div className="py-12 bg-white rounded-lg shadow-md text-center">
+              <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+              <p className="text-red-500">
+                {language === 'en' ? 'Error loading comments' : 'خطأ في تحميل التعليقات'}
+              </p>
+            </div>
+          ) : comments.length === 0 || comments.filter(comment => comment.status === 'approved' || comment.approved).length === 0 ? (
             <div className={`py-12 bg-white rounded-lg shadow-md ${language === 'ar' ? 'text-right' : 'text-left'}`}>
               <div className="flex justify-center">
                 <MessageSquare className="h-12 w-12 text-gray-300 mb-4" />
@@ -364,9 +584,13 @@ const PostDetailPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {comments.map(comment => (
-                <CommentItem key={comment.id} comment={comment} />
-              ))}
+              {/* عرض التعليقات المعتمدة فقط */}
+              {comments
+                .filter(comment => comment.status === 'approved' || comment.approved)
+                .map(comment => (
+                  <CommentItem key={comment.id} comment={comment} />
+                ))
+              }
             </div>
           )}
         </div>

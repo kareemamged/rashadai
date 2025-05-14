@@ -39,6 +39,13 @@ const Login = () => {
         setError(t('auth.login.errors.invalidCredentials'));
       } else if (err.message === 'Email not confirmed') {
         setError(t('auth.login.errors.emailNotConfirmed'));
+      } else if (err.message && err.message.includes('blocked')) {
+        // إذا كان الخطأ يتعلق بحظر الحساب
+        // استخدام الرسالة الأصلية مباشرة بدلاً من محاولة الترجمة
+        setError(err.message);
+
+        // تسجيل الرسالة في وحدة التحكم للتشخيص
+        console.log('Block error message:', err.message);
       } else {
         setError(err.message || t('auth.login.errors.generic'));
       }

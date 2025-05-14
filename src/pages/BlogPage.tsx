@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { posts } from '../data/posts';
 import { Post } from '../types';
 import PostCard from '../components/PostCard';
 import BlogHeader from '../components/BlogHeader';
 import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import BlogSearch from '../components/BlogSearch';
-import { FileText, Brain } from 'lucide-react';
+import { FileText, Brain, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabase';
+import { getImageUrl } from '../utils/imageUtils';
 
 const POSTS_PER_PAGE = 6;
 
@@ -26,45 +27,110 @@ const BlogPage: React.FC = () => {
   const [displayedPosts, setDisplayedPosts] = useState<Post[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to convert Supabase blog posts to our Post type
+  const convertSupabasePosts = (posts: any[]): Post[] => {
+    // دالة للتحقق من وجود رابط الصورة وإصلاحه إذا كان غير صحيح
+    const getImageUrl = (url: string | undefined): string => {
+      if (!url) return '/images/blog/default.webp';
+
+      // إذا كان الرابط يبدأ بـ http أو https، فهو صحيح
+      if (url.startsWith('http')) return url;
+
+      // إذا كان الرابط يبدأ بـ /، فهو مسار محلي
+      if (url.startsWith('/')) return url;
+
+      // إذا كان الرابط يبدأ بـ blog/، فهو مسار في مخزن Supabase
+      if (url.startsWith('blog/')) {
+        return `https://voiwxfqryobznmxgpamq.supabase.co/storage/v1/object/public/images/${url}`;
+      }
+
+      // إذا كان الرابط لا يحتوي على مسار، فهو اسم ملف في مجلد blog
+      return `https://voiwxfqryobznmxgpamq.supabase.co/storage/v1/object/public/images/blog/${url}`;
+    };
+
+    return posts.map(post => ({
+      id: post.id,
+      title: {
+        en: post.title_en || post.title || 'Untitled',
+        ar: post.title_ar || 'بدون عنوان'
+      },
+      summary: {
+        en: post.summary_en || (post.content_en?.substring(0, 150) + '...') || (post.content?.substring(0, 150) + '...') || '',
+        ar: post.summary_ar || (post.content_ar?.substring(0, 150) + '...') || ''
+      },
+      content: {
+        en: post.content_en || post.content || '',
+        ar: post.content_ar || ''
+      },
+      category: post.category || 'tip',
+      publishedDate: post.created_at || new Date().toISOString(),
+      imageUrl: getImageUrl(post.image_url)
+    }));
+  };
 
   useEffect(() => {
-    // Filter posts based on category and search query
-    let filteredPosts = [...posts];
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      setError(null);
 
-    if (category) {
-      const categoryType = category === 'news' ? 'news' : 'tip';
-      filteredPosts = filteredPosts.filter(post => post.category === categoryType);
-    }
+      try {
+        // Build the query
+        let query = supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('published', true) // Only get published posts
+          .order('created_at', { ascending: false });
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filteredPosts = filteredPosts.filter(
-        post =>
-          post.title[currentLanguage].toLowerCase().includes(query) ||
-          post.summary[currentLanguage].toLowerCase().includes(query) ||
-          post.content[currentLanguage].toLowerCase().includes(query)
-      );
-    }
+        // Add category filter if needed
+        if (category) {
+          const categoryType = category === 'news' ? 'news' : 'tips';
+          query = query.eq('category', categoryType);
+        }
 
-    // Sort posts by date (newest first)
-    filteredPosts.sort((a, b) =>
-      new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-    );
+        // Add search filter if needed
+        if (searchQuery) {
+          const searchTerm = searchQuery.toLowerCase();
+          // Search in both English and Arabic titles and content
+          query = query.or(`title_en.ilike.%${searchTerm}%,title_ar.ilike.%${searchTerm}%,content_en.ilike.%${searchTerm}%,content_ar.ilike.%${searchTerm}%`);
+        }
 
-    // Calculate pagination
-    const total = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
-    setTotalPages(total);
+        console.log('Fetching blog posts with query:', query);
+        const { data, error } = await query;
+        console.log('Blog posts data:', data);
+        console.log('Blog posts error:', error);
 
-    // Adjust current page if needed
-    if (currentPage > total) {
-      setCurrentPage(1);
-    }
+        if (error) throw error;
 
-    // Get posts for current page
-    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-    const endIndex = startIndex + POSTS_PER_PAGE;
-    setDisplayedPosts(filteredPosts.slice(startIndex, endIndex));
+        // Process the data
+        const allPosts = data ? convertSupabasePosts(data) : [];
 
+        // Calculate pagination
+        const total = Math.ceil(allPosts.length / POSTS_PER_PAGE);
+        setTotalPages(total || 1);
+
+        // Adjust current page if needed
+        if (currentPage > total && total > 0) {
+          setCurrentPage(1);
+        }
+
+        // Get posts for current page
+        const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+        const endIndex = startIndex + POSTS_PER_PAGE;
+        setDisplayedPosts(allPosts.slice(startIndex, endIndex));
+
+      } catch (err) {
+        console.error('Error fetching blog posts:', err);
+        setError('Failed to load blog posts. Please try again later.');
+        setDisplayedPosts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
   }, [category, searchQuery, currentPage]);
 
   const handlePageChange = (page: number) => {
@@ -137,7 +203,28 @@ const BlogPage: React.FC = () => {
 
         <BlogSearch onSearch={handleSearch} />
 
-        {displayedPosts.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <Loader2 className="h-16 w-16 mx-auto text-blue-500 animate-spin mb-4" />
+            <p className="text-gray-600">
+              {currentLanguage === 'en' ? 'Loading posts...' : 'جاري تحميل المنشورات...'}
+            </p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-red-50 rounded-lg p-6">
+            <FileText className="h-16 w-16 mx-auto text-red-400 mb-4" />
+            <h2 className={`text-2xl font-semibold text-red-700 mb-2`}>
+              {currentLanguage === 'en' ? 'Error Loading Posts' : 'خطأ في تحميل المنشورات'}
+            </h2>
+            <p className={`text-red-600 mb-6`}>{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              {currentLanguage === 'en' ? 'Try Again' : 'حاول مرة أخرى'}
+            </button>
+          </div>
+        ) : displayedPosts.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-16 w-16 mx-auto text-gray-300 mb-4" />
             <h2 className={`text-2xl font-semibold text-gray-700 mb-2 ${currentLanguage === 'ar' ? 'text-right' : ''}`}>

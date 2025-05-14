@@ -3,6 +3,7 @@ import { Star, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 import Layout from '../components/Layout';
 import { useTestimonialsStore, Testimonial } from '../store/testimonialsStore';
 import { useAuthStore } from '../store/authStore';
+import { useAdminStore } from '../store/adminStore';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +27,25 @@ const TestimonialsPage = () => {
 
   // Fetch testimonials when component mounts
   useEffect(() => {
-    fetchTestimonials();
+    const loadTestimonials = async () => {
+      console.log("Testimonials page: Loading testimonials...");
+      await fetchTestimonials(true); // true = fetch all testimonials
+
+      // إضافة مستمع للتغييرات في متجر التقييمات
+      const unsubscribe = useTestimonialsStore.subscribe(
+        (state) => state.testimonials,
+        (testimonials) => {
+          console.log("Testimonials page: Store updated, testimonials count:", testimonials.length);
+        }
+      );
+
+      // تنظيف المستمع عند إلغاء تحميل المكون
+      return () => {
+        unsubscribe();
+      };
+    };
+
+    loadTestimonials();
   }, [fetchTestimonials]);
 
   // Pre-fill user name if logged in
@@ -60,10 +79,13 @@ const TestimonialsPage = () => {
         image_url: newTestimonial.image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(newTestimonial.user_name) + '&background=random'
       };
 
+      console.log('Submitting testimonial:', testimonialData);
+
       const result = await addTestimonial(testimonialData);
 
       if (result) {
-        setSuccess(language === 'ar' ? 'شكرًا لتقريرك! تم نشره.' : 'Thank you for your testimonial! It has been published.');
+        console.log('Testimonial submitted successfully');
+        setSuccess(language === 'ar' ? 'شكرًا لتقريرك! سيتم مراجعته قبل النشر.' : 'Thank you for your testimonial! It will be reviewed before publishing.');
         setNewTestimonial({
           user_name: user.name || user.email.split('@')[0] || '',
           role: '',
@@ -71,7 +93,39 @@ const TestimonialsPage = () => {
           rating: 5,
           image_url: ''
         });
+
+        // Refresh testimonials to show the new one
+        await fetchTestimonials(true);
+
+        // تأكد من أن التقييم الجديد موجود في المتجر
+        const currentTestimonials = useTestimonialsStore.getState().testimonials;
+        console.log('Current testimonials after submission:', currentTestimonials.length);
+
+        // تحديث localStorage يدويًا للتأكد من حفظ التقييم
+        try {
+          const localStorageKey = 'testimonials-storage';
+          const storedData = localStorage.getItem(localStorageKey);
+          if (storedData) {
+            const parsedData = JSON.parse(storedData);
+            if (parsedData && parsedData.state) {
+              parsedData.state.testimonials = currentTestimonials;
+              localStorage.setItem(localStorageKey, JSON.stringify(parsedData));
+              console.log('Updated localStorage with new testimonial');
+            }
+          }
+        } catch (localStorageError) {
+          console.error('Error updating localStorage:', localStorageError);
+        }
+
+        // تحديث إحصائيات لوحة التحكم
+        try {
+          await useAdminStore.getState().fetchStats();
+          console.log('Updated dashboard stats after new testimonial submission');
+        } catch (statsError) {
+          console.error('Error updating dashboard stats:', statsError);
+        }
       } else {
+        console.error('Failed to submit testimonial');
         throw new Error(language === 'ar' ? 'حدث خطأ أثناء إرسال تقريرك.' : 'Failed to submit testimonial');
       }
     } catch (err: any) {
@@ -212,7 +266,9 @@ const TestimonialsPage = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {testimonials.map((testimonial) => (
+                {testimonials
+                  .filter(testimonial => testimonial.approved || testimonial.status === 'approved')
+                  .map((testimonial) => (
                   <div
                     key={testimonial.id}
                     className="bg-white rounded-xl shadow-md p-6 transition-transform duration-300 hover:-translate-y-1"

@@ -38,9 +38,24 @@ export const countries: Country[] = [
 ];
 
 export const getCountryByCode = (code: string): Country | undefined => {
-  return countries.find(country => country.code === code);
+  console.log('Getting country for code:', code);
+  const country = countries.find(country => country.code === code);
+  console.log('Found country:', country);
+  return country;
 };
 
 export const getDefaultCountry = (): Country => {
-  return countries[0]; // Saudi Arabia as default country
+  return countries.find(country => country.code === 'EG') || countries[0]; // Egypt as default country
+};
+
+/**
+ * Get country name by country code
+ * @param code - Country code (e.g., 'SA', 'US')
+ * @returns Country name or the code if country not found
+ */
+export const getCountryNameByCode = (code: string): string => {
+  if (!code) return '';
+
+  const country = countries.find(country => country.code === code);
+  return country ? country.name : code;
 };

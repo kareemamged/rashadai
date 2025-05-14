@@ -19,6 +19,14 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import Services from './pages/Services';
 import OurVision from './pages/OurVision';
 import AdminPanel from './pages/admin/AdminPanel';
+import DashboardPage from './pages/admin/DashboardPage';
+import ContentManagementPage from './pages/admin/ContentManagementPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import DesignControlPage from './pages/admin/DesignControlPage';
+import PermissionsManagerPage from './pages/admin/PermissionsManagerPage';
+import SystemSettingsPage from './pages/admin/SystemSettingsPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
+import AdminAccountsPage from './pages/admin/AdminAccountsPage';
 import Cookies from './pages/legal/Cookies';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import HIPAACompliance from './pages/legal/HIPAACompliance';
@@ -34,6 +42,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { ToastProvider } from './components/ToastContainer';
 import LanguageTest from './components/LanguageTest';
+import NotificationProvider from './components/ui/NotificationProvider';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -77,26 +86,36 @@ function App() {
   }, [language, i18n]);
 
   return (
-    <ToastProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={
-            <Layout>
-              <Hero />
-              <Features />
-              <HowItWorks />
-              <TestimonialsSlider />
-              <FAQ />
-              <CTA />
-            </Layout>
-          } />
+    <NotificationProvider>
+      <ToastProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={
+              <Layout>
+                <Hero />
+                <Features />
+                <HowItWorks />
+                <TestimonialsSlider />
+                <FAQ />
+                <CTA />
+              </Layout>
+            } />
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/consultation" element={<ConsultationForm />} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/category/:category" element={<BlogPage />} />
           <Route path="/post/:id" element={<PostDetailPage />} />
-          <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+          <Route path="/admin/login" element={<AdminPanel />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<DashboardPage />} />
+          <Route path="/admin/content/*" element={<ContentManagementPage />} />
+          <Route path="/admin/users/*" element={<UserManagementPage />} />
+          <Route path="/admin/design" element={<DesignControlPage />} />
+          <Route path="/admin/permissions" element={<PermissionsManagerPage />} />
+          <Route path="/admin/settings" element={<SystemSettingsPage />} />
+          <Route path="/admin/profile" element={<AdminProfilePage />} />
+          <Route path="/admin/accounts" element={<AdminAccountsPage />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/services" element={<Services />} />
@@ -115,9 +134,10 @@ function App() {
           <Route path="/language-test" element={<LanguageTest />} />
           <Route path="/auth/callback" element={<Navigate to="/chat" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </ToastProvider>
+          </Routes>
+        </Router>
+      </ToastProvider>
+    </NotificationProvider>
   );
 }
 

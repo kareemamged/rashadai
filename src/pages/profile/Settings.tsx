@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Settings as SettingsIcon, User, Lock, Bell, Shield, Palette, Loader, Save, Moon, Sun, Type } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import ChatHeader from '../../components/ChatHeader';
+import DeletionAlert from '../../components/DeletionAlert';
 import { useTranslation } from 'react-i18next';
 
 const Settings = () => {
@@ -199,6 +200,9 @@ const Settings = () => {
 
               {/* Main content */}
               <div className="flex-1 p-6">
+                {/* إضافة تنبيه حذف الحساب */}
+                <DeletionAlert />
+
                 {successMessage && (
                   <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
                     {successMessage}

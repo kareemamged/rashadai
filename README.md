@@ -123,6 +123,15 @@ REACT_APP_OPENAI_API_KEY=your-openai-api-key
    - اتبع التعليمات في ملف [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
    - قم بتنفيذ الكود SQL الموجود في ملف [setup_profiles_table.sql](./setup_profiles_table.sql)
 
+5. **إعداد نظام المدونة**:
+   - قم بتنفيذ الكود SQL الموجود في ملف [supabase/create_exec_sql_function.sql](./supabase/create_exec_sql_function.sql)
+   - قم بتنفيذ الكود SQL الموجود في ملف [supabase/blog_posts_table.sql](./supabase/blog_posts_table.sql)
+   - قم بتنفيذ الكود SQL الموجود في ملف [supabase/add_blog_posts_foreign_key.sql](./supabase/add_blog_posts_foreign_key.sql)
+   - أو قم بتنفيذ الأمر التالي لإعداد جداول المدونة تلقائياً:
+   ```bash
+   SUPABASE_SERVICE_KEY=your_service_key node setup_blog_tables.js
+   ```
+
 5. **تشغيل المشروع في وضع التطوير**:
 ```bash
 npm start
@@ -137,12 +146,42 @@ npm run build
 yarn build
 ```
 
-### حل مشكلة "Database error saving new user"
+### حل المشكلات الشائعة
+
+#### مشكلة "Database error saving new user"
 
 إذا واجهت مشكلة "Database error saving new user" عند محاولة تسجيل مستخدم جديد، فهذا يعني أن هناك مشكلة في إعداد جدول `profiles` في Supabase. لحل هذه المشكلة:
 
 1. قم بتنفيذ الكود SQL الموجود في ملف [setup_profiles_table.sql](./setup_profiles_table.sql)
 2. إذا واجهت خطأ "policy already exists"، قم بتنفيذ الكود الموجود في ملف [setup_profiles_trigger.sql](./setup_profiles_trigger.sql) بدلاً من ذلك
+
+#### مشكلة استبدال صورة البروفايل عند تحديث البيانات
+
+إذا كنت تواجه مشكلة استبدال صورة البروفايل المخصصة بصورة افتراضية عند تحديث بيانات الملف الشخصي، فقد تم إصلاح هذه المشكلة. للمزيد من المعلومات، راجع ملف [PROFILE_AVATAR_FIX.md](./PROFILE_AVATAR_FIX.md).
+
+#### مشكلة "policy already exists" عند إعداد جداول المدونة
+
+إذا واجهت خطأ "policy already exists" عند تنفيذ ملفات SQL لإعداد جداول المدونة، فهذا يعني أن السياسات موجودة بالفعل. يمكنك تجاهل هذه الأخطاء، أو استخدام الملفات المحدثة التي تتحقق من وجود السياسات قبل إنشائها:
+
+1. قم بتنفيذ الكود SQL الموجود في ملف [supabase/blog_posts_table.sql](./supabase/blog_posts_table.sql)
+2. قم بتنفيذ الكود SQL الموجود في ملف [supabase/add_blog_posts_foreign_key.sql](./supabase/add_blog_posts_foreign_key.sql)
+
+#### مشكلة العلاقة بين جداول المدونة والمستخدمين
+
+إذا واجهت مشكلة في العلاقة بين جداول المدونة وجدول المستخدمين، فقد تم إصلاح هذه المشكلة من خلال:
+
+1. تعديل طريقة استعلام البيانات في ملف `ContentManagement.tsx`
+2. إضافة علاقة foreign key بين جدول `blog_posts` وجدول `auth.users`
+3. تحديث سياسات RLS للسماح بالوصول المناسب
+
+للمزيد من المعلومات، راجع ملف [BLOG_SETUP_FIX.md](./BLOG_SETUP_FIX.md).
+
+#### مشكلة الصلاحيات وسياسات RLS في Supabase
+
+إذا واجهت خطأ 403 Forbidden أو "permission denied" عند محاولة الوصول إلى جداول المدونة، فقد تكون المشكلة في سياسات Row Level Security (RLS) في Supabase. لحل هذه المشكلة:
+
+1. قم بتنفيذ الكود SQL الموجود في ملف [supabase/fix_blog_posts_rls.sql](./supabase/fix_blog_posts_rls.sql)
+2. للمزيد من المعلومات حول سياسات RLS وكيفية إصلاحها، راجع ملف [SUPABASE_RLS_FIX.md](./SUPABASE_RLS_FIX.md)
 
 ## 📊 لوحة تحكم المسؤول
 

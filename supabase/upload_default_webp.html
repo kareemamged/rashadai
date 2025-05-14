@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رفع صورة default.webp إلى Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #333;
+      text-align: center;
+    }
+    .container {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #fff;
+      min-height: 100px;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+    #preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>رفع صورة default.webp إلى Supabase</h1>
+  
+  <div class="container">
+    <div class="input-group">
+      <label for="supabase-url">Supabase URL:</label>
+      <input type="text" id="supabase-url" value="https://voiwxfqryobznmxgpamq.supabase.co" />
+    </div>
+    
+    <div class="input-group">
+      <label for="supabase-key">Supabase Anon Key:</label>
+      <input type="text" id="supabase-key" placeholder="أدخل مفتاح Supabase الخاص بك" />
+    </div>
+    
+    <div class="input-group">
+      <label for="image-file">اختر صورة default.webp:</label>
+      <input type="file" id="image-file" accept="image/webp" />
+    </div>
+    
+    <button id="upload-btn">رفع الصورة</button>
+    
+    <div>
+      <h3>معاينة الصورة:</h3>
+      <img id="preview" src="" alt="معاينة الصورة" style="display: none;" />
+    </div>
+    
+    <div class="result" id="result">
+      <p>قم بإدخال مفتاح Supabase واختيار صورة للرفع.</p>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const supabaseUrlInput = document.getElementById('supabase-url');
+      const supabaseKeyInput = document.getElementById('supabase-key');
+      const imageFileInput = document.getElementById('image-file');
+      const uploadBtn = document.getElementById('upload-btn');
+      const preview = document.getElementById('preview');
+      const resultDiv = document.getElementById('result');
+      
+      // عرض الصورة المختارة
+      imageFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            preview.src = event.target.result;
+            preview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      // رفع الصورة
+      uploadBtn.addEventListener('click', async function() {
+        if (!supabaseKeyInput.value) {
+          resultDiv.innerHTML = '<p class="error">يرجى إدخال مفتاح Supabase</p>';
+          return;
+        }
+        
+        const file = imageFileInput.files[0];
+        if (!file) {
+          resultDiv.innerHTML = '<p class="error">يرجى اختيار صورة أولاً</p>';
+          return;
+        }
+        
+        try {
+          resultDiv.innerHTML = '<p>جاري رفع الصورة...</p>';
+          
+          // إنشاء عميل Supabase
+          const supabase = supabaseCreateClient(supabaseUrlInput.value, supabaseKeyInput.value);
+          
+          // رفع الملف إلى Supabase
+          const { data, error } = await supabase.storage
+            .from('images')
+            .upload('blog/default.webp', file, {
+              cacheControl: '3600',
+              upsert: true
+            });
+          
+          if (error) {
+            throw error;
+          }
+          
+          // الحصول على الرابط العام للصورة
+          const { data: urlData } = supabase.storage
+            .from('images')
+            .getPublicUrl('blog/default.webp');
+          
+          resultDiv.innerHTML = `
+            <p class="success">تم رفع الصورة بنجاح!</p>
+            <p>الرابط العام: <a href="${urlData.publicUrl}" target="_blank">${urlData.publicUrl}</a></p>
+            <h2>الخطوات التالية:</h2>
+            <ol>
+              <li>قم بتنفيذ ملف SQL <code>update_empty_images.sql</code> في Supabase SQL Editor لتحديث روابط الصور الفارغة.</li>
+              <li>تأكد من أن سياسات الوصول لمخزن الصور مضبوطة بشكل صحيح.</li>
+              <li>قم بتحديث التطبيق وتحقق من عرض الصور في صفحة البلوج وصفحة تفاصيل المنشور.</li>
+            </ol>
+          `;
+          
+        } catch (error) {
+          resultDiv.innerHTML = `<p class="error">خطأ: ${error.message}</p>`;
+        }
+      });
+      
+      // تعريف دالة supabaseCreateClient
+      function supabaseCreateClient(url, key) {
+        return supabase.createClient(url, key);
+      }
+    });
+  </script>
+</body>
+</html>
