@@ -6,19 +6,19 @@ import HowItWorks from '../components/HowItWorks';
 import TestimonialsSlider from '../components/TestimonialsSlider';
 import FAQ from '../components/FAQ';
 import CTA from '../components/CTA';
-import LeadershipSection from '../components/LeadershipSection';
-import MissionSection from '../components/MissionSection';
-import ConsultationSection from '../components/ConsultationSection';
+// import LeadershipSection from '../components/LeadershipSection';
+// import MissionSection from '../components/MissionSection';
+// import ConsultationSection from '../components/ConsultationSection';
 
 const Home: React.FC = () => {
   return (
     <Layout>
       <Hero />
-      <MissionSection />
+      {/* <MissionSection /> */}
       <Features />
-      <ConsultationSection />
+      {/* <ConsultationSection /> */}
       <HowItWorks />
-      <LeadershipSection />
+      {/* <LeadershipSection /> */}
       <TestimonialsSlider />
       <FAQ />
       <CTA />
