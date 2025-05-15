@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Header />
       <ChatHistoryIcon />
       {user && <div className="container mx-auto px-4 mt-4"><DeletionAlert /></div>}
-      <main className="flex-grow">
+      <main className="flex-grow pt-16">
         {children}
       </main>
       <Footer />

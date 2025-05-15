@@ -518,7 +518,7 @@ const Dashboard = () => {
             {isLoadingStats ? t('common.refreshing', 'Refreshing...') : t('common.refresh', 'Refresh')}
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Users */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
@@ -627,7 +627,7 @@ const Dashboard = () => {
         <h2 className="text-lg font-semibold mb-4">{t('admin.dashboard.systemStatus')}</h2>
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Server Status */}
               <div className="flex items-center">
                 <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">

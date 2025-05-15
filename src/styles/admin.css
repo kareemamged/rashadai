@@ -224,16 +224,44 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 768px) {
-  .admin-sidebar {
-    width: 4rem;
+@media (max-width: 1024px) {
+  /* Mobile sidebar adjustments */
+  .admin-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 30;
   }
 
-  .admin-sidebar-text {
-    display: none;
+  /* Mobile header */
+  .admin-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
+  /* Adjust stats cards for smaller screens */
   .admin-stats-grid {
     grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  /* Adjust table for mobile */
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Adjust form elements for mobile */
+  .admin-form-input,
+  .admin-form-textarea,
+  .admin-form-select {
+    font-size: 16px; /* Prevent zoom on mobile */
   }
 }

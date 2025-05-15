@@ -16,7 +16,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="pt-32 pb-24 bg-gradient-to-b from-blue-50 to-white">
+    <section className="pt-16 pb-24 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center">
           <div className="lg:w-1/2 mb-12 lg:mb-0">
