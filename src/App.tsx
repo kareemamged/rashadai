@@ -2,13 +2,8 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from './store/languageStore';
-import Layout from './components/Layout';
-import Hero from './components/Hero';
-import Features from './components/Features';
-import HowItWorks from './components/HowItWorks';
-import TestimonialsSlider from './components/TestimonialsSlider';
-import FAQ from './components/FAQ';
-import CTA from './components/CTA';
+import ThemeProvider from './components/ThemeProvider';
+import Home from './pages/Home';
 import TestimonialsPage from './pages/Testimonials';
 import BlogPage from './pages/BlogPage';
 import PostDetailPage from './pages/PostDetailPage';
@@ -24,9 +19,12 @@ import ContentManagementPage from './pages/admin/ContentManagementPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import DesignControlPage from './pages/admin/DesignControlPage';
 import PermissionsManagerPage from './pages/admin/PermissionsManagerPage';
-import SystemSettingsPage from './pages/admin/SystemSettingsPage';
+import WebsiteSettingsPage from './pages/admin/WebsiteSettingsPage';
+import EmailSettingsPage from './pages/admin/EmailSettingsPage';
 import AdminProfilePage from './pages/admin/AdminProfilePage';
 import AdminAccountsPage from './pages/admin/AdminAccountsPage';
+import TextsPage from './pages/admin/TextsPage';
+import ImagesPage from './pages/admin/ImagesPage';
 import Cookies from './pages/legal/Cookies';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import HIPAACompliance from './pages/legal/HIPAACompliance';
@@ -86,20 +84,12 @@ function App() {
   }, [language, i18n]);
 
   return (
-    <NotificationProvider>
-      <ToastProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={
-              <Layout>
-                <Hero />
-                <Features />
-                <HowItWorks />
-                <TestimonialsSlider />
-                <FAQ />
-                <CTA />
-              </Layout>
-            } />
+    <ThemeProvider>
+      <NotificationProvider>
+        <ToastProvider>
+          <Router>
+            <Routes>
+            <Route path="/" element={<Home />} />
           <Route path="/testimonials" element={<TestimonialsPage />} />
           <Route path="/consultation" element={<ConsultationForm />} />
           <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
@@ -112,8 +102,11 @@ function App() {
           <Route path="/admin/content/*" element={<ContentManagementPage />} />
           <Route path="/admin/users/*" element={<UserManagementPage />} />
           <Route path="/admin/design" element={<DesignControlPage />} />
+          <Route path="/admin/texts" element={<TextsPage />} />
+          <Route path="/admin/images" element={<ImagesPage />} />
           <Route path="/admin/permissions" element={<PermissionsManagerPage />} />
-          <Route path="/admin/settings" element={<SystemSettingsPage />} />
+          <Route path="/admin/settings" element={<WebsiteSettingsPage />} />
+          <Route path="/admin/email-settings" element={<EmailSettingsPage />} />
           <Route path="/admin/profile" element={<AdminProfilePage />} />
           <Route path="/admin/accounts" element={<AdminAccountsPage />} />
           <Route path="/about" element={<AboutUs />} />
@@ -135,9 +128,10 @@ function App() {
           <Route path="/auth/callback" element={<Navigate to="/chat" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Router>
-      </ToastProvider>
-    </NotificationProvider>
+          </Router>
+        </ToastProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
 }
 

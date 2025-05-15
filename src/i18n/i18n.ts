@@ -6,6 +6,27 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enTranslation from './locales/en.json';
 import arTranslation from './locales/ar.json';
 
+// Intentar cargar traducciones personalizadas desde localStorage
+const loadCustomTranslations = () => {
+  try {
+    const storedEnTranslations = localStorage.getItem('translations_en');
+    const storedArTranslations = localStorage.getItem('translations_ar');
+
+    return {
+      en: storedEnTranslations ? JSON.parse(storedEnTranslations) : enTranslation,
+      ar: storedArTranslations ? JSON.parse(storedArTranslations) : arTranslation
+    };
+  } catch (error) {
+    console.warn('Error loading custom translations from localStorage:', error);
+    return {
+      en: enTranslation,
+      ar: arTranslation
+    };
+  }
+};
+
+const translations = loadCustomTranslations();
+
 // Configuración de i18next
 i18n
   // Detectar el idioma del navegador
@@ -16,10 +37,10 @@ i18n
   .init({
     resources: {
       en: {
-        translation: enTranslation
+        translation: translations.en
       },
       ar: {
-        translation: arTranslation
+        translation: translations.ar
       }
     },
     fallbackLng: 'en',

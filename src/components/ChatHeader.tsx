@@ -62,8 +62,12 @@ const ChatHeader: React.FC = () => {
 
           {/* Logo */}
           <Link to="/chat" className="flex items-center">
-            <Bot className={`h-8 w-8 text-blue-600 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
-            <span className="text-xl font-bold text-blue-700">RashadAI</span>
+            {window.designSettings?.logo ? (
+              <img src={window.designSettings.logo} alt="Logo" className={`h-8 w-auto ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+            ) : (
+              <Bot className={`h-8 w-8 text-blue-600 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+            )}
+            <span className="text-xl font-bold text-blue-700">{window.siteName || 'RashadAI'}</span>
           </Link>
         </div>
 

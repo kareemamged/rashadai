@@ -103,8 +103,12 @@ const BlogHeader: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <Activity className={`h-8 w-8 text-blue-600 ${currentLanguage === 'en' ? 'mr-2' : 'ml-2'}`} />
-            <span className="text-xl font-bold text-blue-700">RashadAI</span>
+            {window.designSettings?.logo ? (
+              <img src={window.designSettings.logo} alt="Logo" className={`h-8 w-auto ${currentLanguage === 'en' ? 'mr-2' : 'ml-2'}`} />
+            ) : (
+              <Activity className={`h-8 w-8 text-blue-600 ${currentLanguage === 'en' ? 'mr-2' : 'ml-2'}`} />
+            )}
+            <span className="text-xl font-bold text-blue-700">{window.siteName || 'RashadAI'}</span>
           </Link>
 
           <nav className={`hidden md:flex items-center ${currentLanguage === 'en' ? 'space-x-8' : 'space-x-reverse space-x-8'}`}>

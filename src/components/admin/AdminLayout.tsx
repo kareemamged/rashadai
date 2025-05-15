@@ -21,7 +21,10 @@ import {
   Bell,
   User,
   Menu,
-  X
+  X,
+  Type,
+  Image,
+  Mail
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -50,8 +53,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     }
   }, [adminUser, navigate, location]);
 
-  const [contentOpen, setContentOpen] = useState(false);
-  const [usersOpen, setUsersOpen] = useState(false);
+  // متغيرات الحالة للقائمة المنسدلة للملف الشخصي فقط
   const [isRTL, setIsRTL] = useState(language === 'ar');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
@@ -94,8 +96,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg h-screen overflow-y-auto">
         <div className="p-4 flex items-center">
-          <Activity className={`h-8 w-8 text-blue-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-          <span className="text-xl font-bold">RashadAI Admin</span>
+          {window.designSettings?.logo ? (
+            <img src={window.designSettings.logo} alt="Logo" className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`} />
+          ) : (
+            <Activity className={`h-8 w-8 text-blue-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+          )}
+          <span className="text-xl font-bold">{window.siteName ? `${window.siteName} Admin` : 'RashadAI Admin'}</span>
         </div>
 
         <nav className="mt-6">
@@ -111,110 +117,30 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </Link>
 
           {/* Content Management */}
-          <div>
-            <button
-              onClick={() => setContentOpen(!contentOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 ${
-                location.pathname.includes('/admin/content')
-                  ? 'bg-blue-50 text-blue-600 font-medium'
-                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-              }`}
-            >
-              <div className="flex items-center">
-                <FileText className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
-                <span>{t('admin.content.title', 'Content Management')}</span>
-              </div>
-              {contentOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-
-            {contentOpen && (
-              <div className={`${isRTL ? 'pr-10' : 'pl-10'} py-1`}>
-                <Link
-                  to="/admin/content/blog"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/content/blog')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.content.blog', 'Blog Posts')}
-                </Link>
-                <Link
-                  to="/admin/content/comments"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/content/comments')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.content.comments', 'Comments')}
-                </Link>
-                <Link
-                  to="/admin/content/testimonials"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/content/testimonials')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.content.testimonials', 'Testimonials')}
-                </Link>
-              </div>
-            )}
-          </div>
+          <Link
+            to="/admin/content"
+            className={`flex items-center px-4 py-3 ${
+              location.pathname.includes('/admin/content')
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+            }`}
+          >
+            <FileText className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+            {t('admin.content.title', 'Content Management')}
+          </Link>
 
           {/* User Management */}
-          <div>
-            <button
-              onClick={() => setUsersOpen(!usersOpen)}
-              className={`w-full flex items-center justify-between px-4 py-3 ${
-                location.pathname.includes('/admin/users')
-                  ? 'bg-blue-50 text-blue-600 font-medium'
-                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-              }`}
-            >
-              <div className="flex items-center">
-                <Users className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
-                <span>{t('admin.users.title', 'User Management')}</span>
-              </div>
-              {usersOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-
-            {usersOpen && (
-              <div className={`${isRTL ? 'pr-10' : 'pl-10'} py-1`}>
-                <Link
-                  to="/admin/users/patients"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/users/patients')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.users.patients', 'Patients')}
-                </Link>
-                <Link
-                  to="/admin/users/doctors"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/users/doctors')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.users.doctors', 'Doctors')}
-                </Link>
-                <Link
-                  to="/admin/users/admins"
-                  className={`block py-2 px-4 rounded ${
-                    isActive('/admin/users/admins')
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-blue-600'
-                  }`}
-                >
-                  {t('admin.users.admins', 'Administrators')}
-                </Link>
-              </div>
-            )}
-          </div>
+          <Link
+            to="/admin/users"
+            className={`flex items-center px-4 py-3 ${
+              location.pathname.includes('/admin/users')
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+            }`}
+          >
+            <Users className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+            {t('admin.users.title', 'User Management')}
+          </Link>
 
           {/* Design Control */}
           <Link
@@ -229,6 +155,33 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {t('admin.design.title', 'Design Control')}
           </Link>
 
+          {/* Texts Control */}
+          <Link
+            to="/admin/texts"
+            className={`flex items-center px-4 py-3 ${
+              isActive('/admin/texts')
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+            }`}
+          >
+            <Type className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+            {t('admin.texts.title', 'Website Texts')}
+          </Link>
+
+          {/* Images Control - Temporarily hidden
+          <Link
+            to="/admin/images"
+            className={`flex items-center px-4 py-3 ${
+              isActive('/admin/images')
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+            }`}
+          >
+            <Image className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+            {t('admin.images.title', 'Website Images')}
+          </Link>
+          */}
+
           {/* Permissions Manager */}
           <Link
             to="/admin/permissions"
@@ -242,7 +195,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {t('admin.permissions.title', 'Permissions')}
           </Link>
 
-          {/* Admin Accounts - Only visible to super_admin */}
+          {/* Admin Accounts - Temporarily hidden
           {adminUser?.role === 'super_admin' && (
             <Link
               to="/admin/accounts"
@@ -256,6 +209,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               {t('admin.accounts.title', 'Admin Accounts')}
             </Link>
           )}
+          */}
 
           {/* Profile */}
           <Link
@@ -270,7 +224,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {t('admin.profile.title', 'Profile')}
           </Link>
 
-          {/* Settings */}
+          {/* Website Settings */}
           <Link
             to="/admin/settings"
             className={`flex items-center px-4 py-3 ${
@@ -280,7 +234,20 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             }`}
           >
             <Settings className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
-            {t('admin.settings.title', 'Settings')}
+            {t('admin.settings.title', 'Website Settings')}
+          </Link>
+
+          {/* Email Settings */}
+          <Link
+            to="/admin/email-settings"
+            className={`flex items-center px-4 py-3 ${
+              isActive('/admin/email-settings')
+                ? 'bg-blue-50 text-blue-600 font-medium'
+                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+            }`}
+          >
+            <Mail className={`h-5 w-5 ${isRTL ? 'ml-3' : 'mr-3'}`} />
+            {t('admin.settings.emailSettings', 'Email Settings')}
           </Link>
 
           {/* Logout */}
@@ -342,7 +309,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                           onClick={() => setProfileMenuOpen(false)}
                         >
                           <Settings className="h-4 w-4 mr-2" />
-                          {t('admin.settings.title', 'Settings')}
+                          {t('admin.settings.title', 'Website Settings')}
                         </Link>
                         <hr className="my-1" />
                         <button
@@ -399,7 +366,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                           onClick={() => setProfileMenuOpen(false)}
                         >
                           <Settings className="h-4 w-4 mr-2" />
-                          {t('admin.settings.title', 'Settings')}
+                          {t('admin.settings.title', 'Website Settings')}
                         </Link>
                         <hr className="my-1" />
                         <button

@@ -108,22 +108,26 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
-            <Activity className="h-8 w-8 text-blue-600 mr-2" />
-            <span className="text-xl font-bold text-blue-700">RashadAI</span>
+            {window.designSettings?.logo ? (
+              <img src={window.designSettings.logo} alt="Logo" className="h-8 w-auto mr-2" />
+            ) : (
+              <Activity className="h-8 w-8 text-primary mr-2" />
+            )}
+            <span className="text-xl font-bold text-secondary">{window.siteName || 'RashadAI'}</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex space-x-8 rtl:space-x-reverse">
-            <Link to="/services" className="text-gray-700 hover:text-blue-600 font-medium">
+            <Link to="/services" className="text-gray-700 hover:text-primary font-medium">
               {t('header.services')}
             </Link>
-            <Link to="/vision" className="text-gray-700 hover:text-blue-600 font-medium">
+            <Link to="/vision" className="text-gray-700 hover:text-primary font-medium">
               {t('header.ourVision')}
             </Link>
-            <Link to="/testimonials" className="text-gray-700 hover:text-blue-600 font-medium">
+            <Link to="/testimonials" className="text-gray-700 hover:text-primary font-medium">
               {t('header.testimonials')}
             </Link>
-            <Link to="/blog" className="text-gray-700 hover:text-blue-600 font-medium">
+            <Link to="/blog" className="text-gray-700 hover:text-primary font-medium">
               {t('header.blog')}
             </Link>
           </nav>
@@ -170,7 +174,7 @@ const Header = () => {
                 <Link
                   to="/login"
                   onClick={toggleMenu}
-                  className="text-blue-600 py-3 border-t border-gray-100 rtl:text-right block"
+                  className="text-primary py-3 border-t border-gray-100 rtl:text-right block"
                 >
                   {t('header.login')}
                 </Link>
@@ -180,7 +184,7 @@ const Header = () => {
             <div className="lg:hidden">
               <button
                 onClick={toggleMenu}
-                className="text-gray-600 hover:text-blue-600 focus:outline-none"
+                className="text-gray-600 hover:text-primary focus:outline-none"
                 aria-label="Toggle menu"
               >
                 {isOpen ? (
@@ -246,7 +250,7 @@ const Header = () => {
                   handleConsultation();
                   toggleMenu();
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-full"
+                className="bg-primary hover:bg-primary hover:brightness-90 text-white font-medium py-2 px-6 rounded-full"
               >
                 {t('header.startConsultation')}
               </button>
@@ -294,7 +298,7 @@ const Header = () => {
                     </button>
                   </>
                 ) : (
-                  
+
                 )}
               </div> */}
             </div>

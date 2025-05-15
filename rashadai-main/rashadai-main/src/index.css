@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base direction settings */
+html[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+  font-family: 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] * {
+  letter-spacing: 0;
+}
+
+/* Force LTR for English content */
+html[lang="en"] {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+html[lang="en"] body {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Force RTL for Arabic content */
+html[lang="ar"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+html[lang="ar"] body {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* RTL specific styles */
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .rtl-mirror {
+  direction: rtl;
+}
+
+html[dir="rtl"] .rtl-right {
+  text-align: right;
+}
+
+html[dir="rtl"] .rtl-left {
+  text-align: left;
+}
+
+/* Original styles */
+text--gray {
+    --tw-text-opacity: 1;
+    color: rgb(92 93 94);
+}
+
+.tessst {
+    border: none;
+    outline: 0;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate 0.5s ease-in-out;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-animation {
+  animation: fade 0.3s ease-in-out;
+}

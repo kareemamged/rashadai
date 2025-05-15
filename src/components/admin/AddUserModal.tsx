@@ -70,7 +70,8 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
           p_email: email,
           p_password: password,
           p_name: name,
-          p_role: userType === 'doctor' ? 'doctor' : 'user'
+          p_role: userType === 'doctor' ? 'doctor' : 'user',
+          p_bypass_auth_check: true // تجاوز التحقق من صلاحيات الأدمن لأن auth.uid() يعود بقيمة null
         });
 
         userData = response.data;

@@ -80,7 +80,7 @@ const BlockUserModal: React.FC<BlockUserModalProps> = ({
                 <p className="text-sm text-gray-500">
                   {t('admin.users.blockUserConfirmation', {
                     name: user.name || user.email
-                  })}
+                  }).replace('{name}', user.name || user.email)}
                 </p>
 
                 <div className="mt-6">

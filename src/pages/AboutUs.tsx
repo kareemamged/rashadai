@@ -277,44 +277,34 @@ const AboutUs: React.FC = () => {
       <div className={`py-20 bg-gray-50 ${language === 'ar' ? 'font-cairo' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
-            {language === 'ar' ? 'رحلتنا' : 'Our Journey'}
+            {t('about.journey.title')}
           </h2>
           <div className="max-w-4xl mx-auto">
             {[
               {
-                year: "2020",
-                title: language === 'ar' ? "تأسيس رشاد AI" : "RashadAI Founded",
-                description: language === 'ar'
-                  ? "جمعت د. إيما ريتشاردز فريقًا من خبراء الطب والذكاء الاصطناعي لتطوير المفهوم الأولي."
-                  : "Dr. Emma Richards assembled a team of medical and AI experts to develop the initial concept."
+                year: t('about.journey.milestone1.year'),
+                title: t('about.journey.milestone1.title'),
+                description: t('about.journey.milestone1.description')
               },
               {
-                year: "2021",
-                title: language === 'ar' ? "تطوير أول نموذج للذكاء الاصطناعي" : "First AI Model Developed",
-                description: language === 'ar'
-                  ? "أنشأ فريقنا النسخة الأولى من الذكاء الاصطناعي الطبي لدينا، مع التركيز على الحالات الشائعة وتقييم الأعراض."
-                  : "Our team created the first version of our medical AI, focusing on common conditions and symptom assessment."
+                year: t('about.journey.milestone2.year'),
+                title: t('about.journey.milestone2.title'),
+                description: t('about.journey.milestone2.description')
               },
               {
-                year: "2022",
-                title: language === 'ar' ? "الإطلاق التجريبي" : "Beta Launch",
-                description: language === 'ar'
-                  ? "تم إطلاق منصة رشاد AI في نسخة تجريبية مع 5000 مستخدم أولي، مما وفر ملاحظات قيمة للتحسين."
-                  : "RashadAI platform launched in beta with 5,000 initial users, providing valuable feedback for improvement."
+                year: t('about.journey.milestone3.year'),
+                title: t('about.journey.milestone3.title'),
+                description: t('about.journey.milestone3.description')
               },
               {
-                year: "2023",
-                title: language === 'ar' ? "إطلاق المنصة الكاملة" : "Full Platform Release",
-                description: language === 'ar'
-                  ? "الإطلاق العام لمنصة رشاد AI الكاملة، بما في ذلك تطبيقات الهاتف المحمول وتغطية موسعة للحالات."
-                  : "Public launch of the complete RashadAI platform, including mobile apps and expanded condition coverage."
+                year: t('about.journey.milestone4.year'),
+                title: t('about.journey.milestone4.title'),
+                description: t('about.journey.milestone4.description')
               },
               {
-                year: "2024",
-                title: language === 'ar' ? "التوسع العالمي" : "Global Expansion",
-                description: language === 'ar'
-                  ? "تخدم رشاد AI الآن المستخدمين في أكثر من 20 دولة، مع تحسينات مستمرة في الدقة والميزات."
-                  : "RashadAI now serves users in over 20 countries, with continuous improvements to accuracy and features."
+                year: t('about.journey.milestone5.year'),
+                title: t('about.journey.milestone5.title'),
+                description: t('about.journey.milestone5.description')
               }
             ].map((milestone, index) => (
               <div key={index} className={`relative ${language === 'ar' ? 'pr-8' : 'pl-8'} pb-12 ${language === 'ar' ? 'border-r-2' : 'border-l-2'} border-blue-200 last:border-transparent last:pb-0`}>

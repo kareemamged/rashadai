@@ -2,6 +2,68 @@
 
 This directory contains SQL scripts for managing the Supabase database.
 
+## Website Settings Management
+
+### Create Site Settings Table
+To create the `site_settings` table:
+```sql
+-- site_settings_table.sql
+-- Creates the site_settings table with all required columns and policies
+```
+
+### Add Admin Permission Functions
+To add functions for checking admin permissions:
+```sql
+-- functions/check_admin_permissions.sql
+-- Creates functions for checking admin permissions and updating site settings
+```
+
+### Fix "You must be logged in" Error
+If you encounter the "You must be logged in to perform this action" error:
+
+1. Make sure the user is logged in as an admin
+2. Check that RLS policies allow admins to access the site_settings table
+3. Run the RPC functions in `functions/check_admin_permissions.sql`
+4. Verify the user exists in the admin_users table
+
+### Fix "Your session has expired" Error
+If you encounter the "Your session has expired. Please log in again." error:
+
+1. Run the SQL script in `fix_session_issue.sql` to create the necessary functions and policies
+2. Use the "Refresh Session" button in the UI to refresh your session
+3. If the issue persists, log out and log back in
+4. Make sure your browser allows cookies from the Supabase domain
+
+#### Verify Admin Session
+To check if the current user has an active session:
+```sql
+-- In SQL Editor
+SELECT auth.uid(), auth.role();
+```
+
+#### Check Admin User Existence
+To check if the current user exists in the admin_users table:
+```sql
+-- In SQL Editor
+SELECT * FROM admin_users WHERE id = auth.uid();
+```
+
+#### Verify RLS Policies
+To check if the site_settings table has the correct RLS policies:
+```sql
+-- In SQL Editor
+SELECT tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_policies
+WHERE tablename = 'site_settings';
+```
+
+#### Test Admin Permissions Function
+To test if the admin permissions function works correctly:
+```sql
+-- In SQL Editor
+SELECT check_admin_permissions(auth.uid());
+```
+
 ## Admin User Management
 
 ### Check Admin Table Structure
@@ -44,6 +106,16 @@ To grant admin access to existing users:
 
 ## How to Use
 
+### Running SQL Scripts in Supabase
+
+1. Log in to your Supabase dashboard
+2. Go to the "SQL Editor" section
+3. Click on "New Query"
+4. Copy and paste the SQL script content
+5. Click "Run" to execute the query
+
+### Admin User Setup
+
 1. First, check if the admin_users table exists and its structure:
    - Run `check_admin_table.sql`
 
@@ -56,6 +128,17 @@ To grant admin access to existing users:
 4. To create admin users:
    - Run `create_admin_user_auth.sql` (if users don't exist in auth.users)
    - Run `grant_admin_access_simple.sql` (to grant admin access to existing users)
+
+### Website Settings Setup
+
+1. Create the site_settings table:
+   - Run `site_settings_table.sql`
+
+2. Add admin permission functions:
+   - Run `functions/check_admin_permissions.sql`
+
+3. If you encounter the "You must be logged in" error:
+   - Follow the troubleshooting steps in the "Fix 'You must be logged in' Error" section
 
 ## Admin Login Credentials
 

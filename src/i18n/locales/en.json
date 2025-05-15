@@ -34,7 +34,8 @@
     "female": "Female",
     "other": "Other",
     "saving": "Saving...",
-    "notSpecified": "Not specified"
+    "notSpecified": "Not specified",
+    "password": "Password"
   },
   "header": {
     "services": "Services",
@@ -67,7 +68,8 @@
     "blog": "Blog",
     "faq": "FAQ",
     "support": "Support",
-    "copyright": "© 2025 RashadAI. All rights reserved.",
+    "copyright": "© 2025 {siteName}. All rights reserved.",
+    "allRightsReserved": "All rights reserved",
     "followUs": "Follow Us"
   },
   "home": {
@@ -126,6 +128,44 @@
       "title": "Experience the Future of Healthcare Today",
       "subtitle": "Join thousands of satisfied users who have discovered the convenience and accuracy of AI-powered medical consultations.",
       "button": "Get Started Now"
+    },
+    "leadership": {
+      "title": "Meet Our Leadership Team",
+      "description": "Our team combines expertise in medicine, artificial intelligence, and healthcare technology to create innovative solutions that transform patient care.",
+      "leader1": {
+        "name": "Dr. Emma Richards",
+        "title": "Founder & CEO",
+        "bio": "Former Chief of Medicine with 15 years of clinical experience and a passion for healthcare innovation."
+      },
+      "leader2": {
+        "name": "Dr. Michael Chen",
+        "title": "Chief Medical Officer",
+        "bio": "Board-certified physician with specialized training in medical informatics and AI applications in healthcare."
+      },
+      "leader3": {
+        "name": "Sarah Johnson",
+        "title": "CTO",
+        "bio": "AI researcher with previous experience at leading tech companies and a focus on ethical AI development."
+      }
+    },
+    "mission": {
+      "title": "Revolutionizing Healthcare Through",
+      "subtitle": "Artificial Intelligence",
+      "description": "At RashadAI, we're dedicated to making healthcare more accessible, accurate, and affordable through the innovative application of artificial intelligence technology.",
+      "sectionTitle": "Our Mission",
+      "paragraph1": "RashadAI was founded with a simple yet powerful mission: to democratize access to quality healthcare through technology. We believe that everyone deserves timely medical guidance, regardless of location, income, or circumstance.",
+      "paragraph2": "By combining advanced artificial intelligence with medical expertise, we're creating solutions that provide preliminary medical assessments, health monitoring, and wellness guidance to individuals worldwide.",
+      "tagline": "Harnessing AI to make healthcare smarter, faster, and more personalized.",
+      "imageAlt": "Doctor analyzing medical data with AI"
+    },
+    "consultation": {
+      "title": "AI-Powered Medical Consultation",
+      "description": "Get instant medical guidance from our advanced AI system trained on millions of medical records. Available 24/7, secure, and affordable.",
+      "startButton": "Start Free Consultation",
+      "learnMoreButton": "Learn More",
+      "imageAlt": "Doctor consulting with patient",
+      "availability": "24/7 Availability",
+      "comingSoon": "Coming Soon"
     }
   },
   "faq": {
@@ -356,6 +396,34 @@
         "title": "Inclusivity",
         "description": "We're committed to making healthcare technology accessible to people of all backgrounds."
       }
+    },
+    "journey": {
+      "title": "Our Journey",
+      "milestone1": {
+        "year": "2020",
+        "title": "RashadAI Founded",
+        "description": "Dr. Emma Richards assembled a team of medical and AI experts to develop the initial concept."
+      },
+      "milestone2": {
+        "year": "2021",
+        "title": "First AI Model Developed",
+        "description": "Our team created the first version of our medical AI, focusing on common conditions and symptom assessment."
+      },
+      "milestone3": {
+        "year": "2022",
+        "title": "Beta Launch",
+        "description": "RashadAI platform launched in beta with 5,000 initial users, providing valuable feedback for improvement."
+      },
+      "milestone4": {
+        "year": "2023",
+        "title": "Full Platform Release",
+        "description": "Public launch of the complete RashadAI platform, including mobile apps and expanded condition coverage."
+      },
+      "milestone5": {
+        "year": "2024",
+        "title": "Global Expansion",
+        "description": "RashadAI now serves users in over 20 countries, with continuous improvements to accuracy and features."
+      }
     }
   },
   "vision": {
@@ -537,8 +605,12 @@
       "title": "Dashboard",
       "welcome": "Welcome",
       "totalUsers": "Total Users",
+      "totalVisitors": "Total Regular Users",
+      "totalAdmins": "Total Admins",
       "activeConsultations": "Active Consultations",
       "pendingReviews": "Pending Reviews",
+      "pendingItems": "Pending Items",
+      "pendingComments": "Pending Comments",
       "recentActivity": "Recent Activity",
       "quickStats": "Quick Stats",
       "viewAll": "View All",
@@ -548,7 +620,12 @@
       "storageStatus": "Storage Status",
       "healthy": "Healthy",
       "warning": "Warning",
-      "critical": "Critical"
+      "critical": "Critical",
+      "loggedIn": "logged in to the system",
+      "registered": "registered a new account",
+      "startedConsultation": "started a new consultation",
+      "commentedPost": "commented on a blog post",
+      "publishedPost": "published a new blog post"
     },
     "content": {
       "title": "Content Management",
@@ -757,11 +834,19 @@
       "exportTheme": "Export Theme",
       "importTheme": "Import Theme",
       "themeApplied": "Theme applied successfully",
+      "themeAppliedMessage": "Your theme changes have been applied successfully.",
       "themeSaved": "Theme saved successfully",
       "themeLoaded": "Theme loaded successfully",
       "themeExported": "Theme exported successfully",
       "themeImported": "Theme imported successfully",
-      "resetConfirmation": "Are you sure you want to reset to default settings?"
+      "resetConfirmation": "Are you sure you want to reset to default settings?",
+      "resetSuccess": "Reset Successful",
+      "resetSuccessMessage": "Theme settings have been reset to default values.",
+      "fontPreview": "Font Preview",
+      "siteName": "Site Name",
+      "siteNamePlaceholder": "Enter site name",
+      "themeError": "Error applying theme",
+      "themeErrorMessage": "There was a problem applying your theme changes."
     },
     "permissions": {
       "title": "Permissions",
@@ -800,8 +885,9 @@
       "denied": "Denied"
     },
     "settings": {
-      "title": "System Settings",
+      "title": "Website Settings",
       "general": "General",
+      "generalSettings": "General Settings",
       "siteName": "Site Name",
       "siteDescription": "Site Description",
       "contactEmail": "Contact Email",
@@ -809,6 +895,45 @@
       "timezone": "Timezone",
       "dateFormat": "Date Format",
       "timeFormat": "Time Format",
+      "emailSettings": "Email Settings",
+      "demoMode": "Demo Mode",
+      "demoModeDescription": "This is a demonstration of email settings. In production, you would need to implement a server-side email service using these settings. Currently, emails are simulated and not actually sent.",
+      "testing": "Testing...",
+      "testSuccess": "Connection Successful",
+      "testFailed": "Connection Failed",
+      "sendTest": "Send Test",
+      "testEmailAddress": "Test Email Address",
+      "seoSettings": "SEO Settings",
+      "metaTitle": "Meta Title",
+      "metaTitleHelp": "The title that appears in search engine results (50-60 characters recommended)",
+      "metaDescription": "Meta Description",
+      "metaDescriptionHelp": "The description that appears in search engine results (150-160 characters recommended)",
+      "metaKeywords": "Meta Keywords",
+      "metaKeywordsHelp": "Comma-separated keywords related to your website",
+      "analyticsId": "Google Analytics ID",
+      "socialMediaPreview": "Social Media Preview",
+      "ogTitle": "Open Graph Title",
+      "ogTitleHelp": "Title that appears when shared on Facebook, LinkedIn, etc.",
+      "ogDescription": "Open Graph Description",
+      "ogImage": "Open Graph Image URL",
+      "twitterCard": "Twitter Card Type",
+      "twitterTitle": "Twitter Title",
+      "twitterDescription": "Twitter Description",
+      "twitterImage": "Twitter Image URL",
+      "googleVerification": "Google Site Verification",
+      "bingVerification": "Bing Site Verification",
+      "socialMediaSettings": "Social Media Settings",
+      "facebookUrl": "Facebook URL",
+      "twitterUrl": "Twitter URL",
+      "instagramUrl": "Instagram URL",
+      "linkedinUrl": "LinkedIn URL",
+      "youtubeUrl": "YouTube URL",
+      "contactInformation": "Contact Information",
+      "contactEmailHelp": "Email displayed on the contact page",
+      "contactPhone": "Contact Phone",
+      "contactPhoneHelp": "Phone number displayed on the contact page",
+      "contactAddress": "Address",
+      "supportHours": "Support Hours",
       "security": "Security",
       "enableTwoFactor": "Enable Two-Factor Authentication",
       "sessionTimeout": "Session Timeout",
@@ -835,6 +960,86 @@
       "backupRestored": "Backup restored successfully",
       "cacheCleared": "Cache cleared successfully",
       "databaseOptimized": "Database optimized successfully"
+    },
+    "texts": {
+      "title": "Website Texts",
+      "description": "Manage all text content displayed on the website",
+      "language": "Language",
+      "search": "Search texts...",
+      "key": "Key",
+      "value": "Value",
+      "path": "Path",
+      "actions": "Actions",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "reset": "Reset",
+      "loading": "Loading texts...",
+      "noResults": "No texts found matching your search",
+      "saveSuccess": "Texts saved successfully",
+      "saveSuccessMessage": "All text changes have been saved",
+      "saveError": "Error saving texts",
+      "saveErrorMessage": "There was a problem saving your changes",
+      "loadError": "Error loading texts",
+      "loadErrorMessage": "There was a problem loading the texts",
+      "unsavedChanges": "You have unsaved changes. Are you sure you want to switch languages?"
+    },
+    "images": {
+      "title": "Website Images",
+      "description": "Manage all images used on the website",
+      "siteImages": "Site Images",
+      "allImages": "All Images",
+      "search": "Search images...",
+      "loading": "Loading images...",
+      "noResults": "No images found matching your search",
+      "noImagesInCategory": "No images in this category",
+      "noImagesInSection": "No images in this section",
+      "uploadNew": "Upload New Image",
+      "selectCategory": "Select Category",
+      "chooseCategory": "Choose a category",
+      "selectFile": "Select Image File",
+      "upload": "Upload Image",
+      "uploading": "Uploading...",
+      "refresh": "Refresh",
+      "view": "View",
+      "delete": "Delete",
+      "deleteConfirmation": "Are you sure you want to delete this image? This action cannot be undone.",
+      "uploadSuccess": "Image uploaded successfully",
+      "uploadSuccessMessage": "Your image has been uploaded and is now available for use",
+      "uploadError": "Error uploading image",
+      "uploadErrorMessage": "There was a problem uploading your image",
+      "selectFileAndCategory": "Please select both a file and a category",
+      "selectFile": "Please select a file",
+      "deleteSuccess": "Image deleted successfully",
+      "deleteSuccessMessage": "The image has been permanently deleted",
+      "deleteError": "Error deleting image",
+      "deleteErrorMessage": "There was a problem deleting the image",
+      "loadError": "Error loading images",
+      "loadErrorMessage": "There was a problem loading the images",
+      "addSuccess": "Image added successfully",
+      "addSuccessMessage": "The new image has been added",
+      "addError": "Error adding image",
+      "addErrorMessage": "There was a problem adding the image",
+      "key": "Key",
+      "lastUpdated": "Last Updated",
+      "currentImage": "Current Image",
+      "noImageAvailable": "No image available",
+      "categories": {
+        "logos": "Logos",
+        "icons": "Icons",
+        "backgrounds": "Backgrounds",
+        "banners": "Banners",
+        "defaults": "Default Images",
+        "other": "Other Images"
+      },
+      "sections": {
+        "leadership": "Leadership Team",
+        "mission": "Mission Section",
+        "consultation": "Consultation Section",
+        "home": "Home Page",
+        "about": "About Page",
+        "services": "Services Page",
+        "contact": "Contact Page"
+      }
     }
   }
 }

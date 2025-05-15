@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, Loader, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '../store/languageStore';
+import { useAdminStore } from '../store/adminStore';
+import { sendContactFormEmail } from '../lib/emailService';
 
 const ContactUs: React.FC = () => {
   const { t } = useTranslation();
   const { language } = useLanguageStore();
+  const { systemSettings } = useAdminStore();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,36 +38,77 @@ const ContactUs: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission with a delay
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setFormStatus({
-        submitted: true,
-        error: false,
-        message: 'Thank you! Your message has been received. We will get back to you shortly.'
-      });
+    try {
+      // Get email settings from systemSettings
+      const fromEmail = systemSettings?.emailSettings?.contactForm?.fromEmail || 'no-reply@rashadai.com';
+      const toEmail = systemSettings?.emailSettings?.contactForm?.toEmail || 'support@rashadai.com';
+      const subjectPrefix = systemSettings?.emailSettings?.contactForm?.subjectPrefix || '[Contact Form]';
 
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
+      console.log('Sending contact form to:', toEmail);
+      console.log('From:', fromEmail);
+      console.log('Subject:', `${subjectPrefix} ${formData.subject}`);
+      console.log('Message:', formData.message);
+      console.log('Name:', formData.name);
+      console.log('Email:', formData.email);
 
-      // Reset success message after some time
-      setTimeout(() => {
+      // Send the email
+      const success = await sendContactFormEmail(
+        formData.name,
+        formData.email,
+        formData.subject,
+        formData.message
+      );
+
+      if (success) {
         setFormStatus({
-          submitted: false,
+          submitted: true,
           error: false,
+          message: language === 'ar'
+            ? 'شكراً لك! تم استلام رسالتك. سنعاود الاتصال بك قريباً.'
+            : 'Thank you! Your message has been received. We will get back to you shortly.'
+        });
+
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
           message: ''
         });
-      }, 5000);
-    }, 1500);
+
+        // Reset success message after some time
+        setTimeout(() => {
+          setFormStatus({
+            submitted: false,
+            error: false,
+            message: ''
+          });
+        }, 5000);
+      } else {
+        setFormStatus({
+          submitted: true,
+          error: true,
+          message: language === 'ar'
+            ? 'عذراً، حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى لاحقاً.'
+            : 'Sorry, there was an error sending your message. Please try again later.'
+        });
+      }
+    } catch (error) {
+      console.error('Error sending contact form:', error);
+      setFormStatus({
+        submitted: true,
+        error: true,
+        message: language === 'ar'
+          ? 'عذراً، حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى لاحقاً.'
+          : 'Sorry, there was an error sending your message. Please try again later.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -87,26 +131,24 @@ const ContactUs: React.FC = () => {
               {
                 icon: <Mail className="h-6 w-6 text-blue-600" />,
                 title: language === 'ar' ? "راسلنا" : "Email Us",
-                details: "support@rashadai.com",
-                details2: "info@rashadai.com"
+                details: systemSettings?.contactInfo?.email || "support@rashadai.com",
+                // details2: systemSettings?.contactEmail || "info@rashadai.com"
               },
               {
                 icon: <Phone className="h-6 w-6 text-blue-600" />,
                 title: language === 'ar' ? "اتصل بنا" : "Call Us",
-                details: "+201286904277",
-                details2: language === 'ar' ? "القاهرة، مصر" : "Cairo, Egypt"
+                details: systemSettings?.contactInfo?.phone || "+201286904277"
               },
               {
                 icon: <MapPin className="h-6 w-6 text-blue-600" />,
                 title: language === 'ar' ? "زورنا" : "Visit Us",
-                details: language === 'ar' ? "لا يوجد مكتب حتى الآن" : "don't have an office yet",
+                details: systemSettings?.contactInfo?.address || (language === 'ar' ? "لا يوجد مكتب حتى الآن" : "don't have an office yet"),
                 details2: ""
               },
               {
                 icon: <Clock className="h-6 w-6 text-blue-600" />,
                 title: language === 'ar' ? "ساعات الدعم" : "Support Hours",
-                details: language === 'ar' ? "دعم الدردشة على مدار الساعة" : "24/7 Chat Support",
-                details2: language === 'ar' ? "دعم الهاتف: الاثنين-الجمعة، 9-5 بتوقيت شرق الولايات المتحدة" : "Phone Support: Mon-Fri, 9-5 EST"
+                details: systemSettings?.contactInfo?.supportHours || (language === 'ar' ? "دعم الدردشة على مدار 24 ساعة" : "24/7 Chat Support"),
               }
             ].map((item, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg border border-gray-100 flex flex-col items-center text-center">
@@ -126,6 +168,20 @@ const ContactUs: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 {language === 'ar' ? 'أرسل لنا رسالة' : 'Send Us a Message'}
               </h2>
+
+              {/* Demo Mode Notice - Only visible in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-6 p-4 bg-blue-50 text-blue-700 rounded-md text-sm">
+                  <div className="flex items-start">
+                    <AlertCircle className={`h-5 w-5 ${language === 'ar' ? 'ml-2' : 'mr-2'} mt-0.5 flex-shrink-0`} />
+                    <p>
+                      {language === 'ar'
+                        ? 'وضع العرض التوضيحي: لن يتم إرسال رسائل البريد الإلكتروني فعليًا في بيئة التطوير. ستظهر تفاصيل الرسالة في وحدة التحكم.'
+                        : 'Demo Mode: Emails are not actually sent in development environment. Message details will appear in the console.'}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {formStatus.submitted && (
                 <div className="mb-6 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg flex items-start">

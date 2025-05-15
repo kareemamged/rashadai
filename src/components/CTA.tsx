@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 const CTA = () => {
   const { t } = useTranslation();
   return (
-    <section className="py-20 bg-blue-600">
+    <section className="py-20 bg-primary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
@@ -18,7 +18,7 @@ const CTA = () => {
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 rtl:space-x-reverse">
             <a href="/consultation">
               <button
-                className="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
+                className="bg-white text-primary hover:bg-blue-50 font-semibold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center justify-center"
               >
                 {t('home.cta.button')}
                 <ArrowRight className="ltr:ml-2 rtl:mr-2 h-5 w-5 rtl:rotate-180" />

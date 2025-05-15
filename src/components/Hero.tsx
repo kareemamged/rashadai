@@ -29,13 +29,13 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 rtl:space-x-reverse rtl:text-right">
               <button
                 onClick={handleConsultation}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                className="bg-primary text-white font-semibold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
               >
                 {t('home.hero.ctaButton')}
               </button>
               <button
                 onClick={handleAboutUs}
-                className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-8 rounded-full border border-blue-200 transition duration-300 ease-in-out shadow-sm"
+                className="bg-white hover:bg-gray-50 text-secondary font-semibold py-3 px-8 rounded-full border border-secondary transition duration-300 ease-in-out shadow-sm"
               >
                 {t('home.hero.secondaryButton')}
               </button>
@@ -66,7 +66,7 @@ const Hero = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
           <div className="bg-white p-6 rounded-xl shadow-md transition duration-300 hover:shadow-xl">
             <div className="bg-blue-100 p-3 rounded-full w-14 h-14 flex items-center justify-center mb-4">
-              <Stethoscope className="h-8 w-8 text-blue-600" />
+              <Stethoscope className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-gray-800 rtl:text-right">{t('home.features.feature2.title')}</h3>
             <p className="text-gray-600 rtl:text-right">{t('home.features.feature2.description')}</p>

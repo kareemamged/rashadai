@@ -75,6 +75,9 @@ const Dashboard = () => {
   const [isRTL, setIsRTL] = useState(language === 'ar');
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [totalVisitors, setTotalVisitors] = useState<number>(0);
+  const [totalAdmins, setTotalAdmins] = useState<number>(0);
+  const [totalAllUsers, setTotalAllUsers] = useState<number>(0);
+  const [totalPatients, setTotalPatients] = useState<number>(0);
   const [isLoadingActivity, setIsLoadingActivity] = useState<boolean>(false);
   const [localStats, setLocalStats] = useState<AdminStats>(defaultStats);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -139,6 +142,8 @@ const Dashboard = () => {
 
         await fetchRecentActivity();
         await fetchTotalVisitors();
+        await fetchTotalAdmins();
+        await fetchTotalPatients();
       } catch (error) {
         console.error('Error fetching initial dashboard data:', error);
       }
@@ -158,6 +163,8 @@ const Dashboard = () => {
 
       fetchRecentActivity();
       fetchTotalVisitors();
+      fetchTotalAdmins();
+      fetchTotalPatients();
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
@@ -369,48 +376,78 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch total visitors
+  // Fetch total regular users (non-admin users)
   const fetchTotalVisitors = async () => {
     try {
-      // Check if the visitor_stats view exists
-      const { data: checkData, error: checkError } = await supabase
-        .from('visitor_stats')
-        .select('*')
-        .limit(1)
-        .single();
-
-      if (checkError && checkError.message.includes('does not exist')) {
-        console.warn('visitor_stats view does not exist, using fallback data');
-        // Fallback to profiles count as an estimate
-        const { count, error } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        // Multiply by a factor to estimate visitors (typically visitors > users)
-        const estimatedVisitors = count ? count * 3 : 0;
-        setTotalVisitors(estimatedVisitors);
-        return;
-      }
-
-      if (checkData) {
-        setTotalVisitors(checkData.total_visitors || 0);
-      } else {
-        // Alternative: Count from visitors table directly
-        const { count, error } = await supabase
-          .from('visitors')
-          .select('*', { count: 'exact', head: true });
-
-        if (error) throw error;
-        setTotalVisitors(count || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching total visitors:', error);
-      // Fallback to a reasonable number based on users
-      const { count } = await supabase
+      // Count regular users (excluding admins)
+      const { count, error } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .not('role', 'eq', 'admin');
 
-      setTotalVisitors(count ? count * 3 : 1000);
+      if (error) throw error;
+
+      // Set the count of regular users
+      setTotalVisitors(count || 0);
+
+      // Update total users count after fetching regular users
+      updateTotalUsers();
+    } catch (error) {
+      console.error('Error fetching regular users count:', error);
+      // Fallback to 0 if there's an error
+      setTotalVisitors(0);
+    }
+  };
+
+  // Fetch total admins count
+  const fetchTotalAdmins = async () => {
+    try {
+      // Count admin users from profiles table where role = 'admin'
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'admin');
+
+      if (error) throw error;
+
+      // Set the count of admin users
+      setTotalAdmins(count || 0);
+      console.log('Fetched admins count from profiles table:', count);
+
+      // Update total users count after fetching admins
+      updateTotalUsers();
+    } catch (error) {
+      console.error('Error fetching admin users count:', error);
+      // Fallback to 0 if there's an error
+      setTotalAdmins(0);
+    }
+  };
+
+  // Calculate and update total users (regular users + admins)
+  const updateTotalUsers = () => {
+    const total = totalVisitors + totalAdmins;
+    setTotalAllUsers(total);
+    console.log('Updated total users count:', total, '(Regular users:', totalVisitors, '+ Admins:', totalAdmins, ')');
+  };
+
+  // Fetch total patients count (users with role='user' or role='patient')
+  const fetchTotalPatients = async () => {
+    try {
+      // Count patients (users with role='user' or role='patient')
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .or('role.eq.user,role.eq.patient');
+
+      if (error) throw error;
+
+      // Set the count of patients
+      setTotalPatients(count || 0);
+      console.log('Fetched patients count:', count);
+    } catch (error) {
+      console.error('Error fetching patients count:', error);
+      // Fallback to 0 if there's an error
+      setTotalPatients(0);
     }
   };
 
@@ -492,17 +529,17 @@ const Dashboard = () => {
             </div>
             <p className="text-3xl font-bold text-gray-800">
               {isLoadingStats ? '...' : (
-                typeof localStats.totalUsers === 'number' ?
-                localStats.totalUsers.toString() :
+                typeof totalPatients === 'number' ?
+                totalPatients.toString() :
                 '0'
               )}
             </p>
           </div>
 
-          {/* Total Visitors */}
+          {/* Total Visitors (Regular Users) */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.totalVisitors', 'Total Visitors')}</h3>
+              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.totalVisitors')}</h3>
               <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                 <Eye className="h-6 w-6 text-purple-600" />
               </div>
@@ -516,18 +553,18 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Active Consultations */}
+          {/* Total Admins */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.activeConsultations')}</h3>
+              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.totalAdmins')}</h3>
               <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-green-600" />
+                <Users className="h-6 w-6 text-green-600" />
               </div>
             </div>
             <p className="text-3xl font-bold text-gray-800">
               {isLoadingStats ? '...' : (
-                typeof localStats.activeConsultations === 'number' ?
-                localStats.activeConsultations.toString() :
+                typeof totalAdmins === 'number' ?
+                totalAdmins.toString() :
                 '0'
               )}
             </p>
@@ -536,12 +573,12 @@ const Dashboard = () => {
           {/* Pending Items */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.pendingItems', 'Pending Items')}</h3>
+              <h3 className="text-sm font-medium text-gray-500">{t('admin.dashboard.pendingItems')}</h3>
               <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
                 <Star className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div>
               {/* Calculate total pending items directly here to avoid NaN */}
               {(() => {
                 // Get pending counts directly from the store
@@ -580,46 +617,6 @@ const Dashboard = () => {
                   </p>
                 );
               })()}
-
-              <div className="flex flex-col space-y-1">
-                {(typeof localStats.pendingReviews === 'number' && localStats.pendingReviews > 0) && (
-                  <a
-                    href="/admin/content?tab=testimonials"
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    {t('admin.dashboard.reviews', 'Reviews')}: {localStats.pendingReviews}
-                  </a>
-                )}
-                {(typeof localStats.pendingComments === 'number' && localStats.pendingComments > 0) && (
-                  <a
-                    href="/admin/content?tab=comments"
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    {t('admin.dashboard.comments', 'Comments')}: {localStats.pendingComments}
-                  </a>
-                )}
-                {/* زر تحديث التقييمات المعلقة */}
-                <button
-                  onClick={async () => {
-                    try {
-                      console.log('Manual refresh of pending testimonials');
-
-                      // استخدام الوظيفة المخصصة لتحديث عدد التقييمات المعلقة
-                      const pendingCount = await adminStore.updatePendingReviewsCount();
-
-                      console.log('Manual refresh result - pending testimonials count:', pendingCount);
-
-                      // تحديث الإحصائيات الكاملة
-                      await adminStore.fetchStats();
-                    } catch (error) {
-                      console.error('Error refreshing testimonials:', error);
-                    }
-                  }}
-                  className="text-xs text-gray-500 hover:text-gray-700 mt-1"
-                >
-                  {t('common.refreshPending', 'Refresh pending items')}
-                </button>
-              </div>
             </div>
           </div>
         </div>

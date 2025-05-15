@@ -93,7 +93,7 @@
 .admin-form-textarea:focus,
 .admin-form-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -110,17 +110,18 @@
 }
 
 .admin-btn-primary {
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   color: #fff;
 }
 
 .admin-btn-primary:hover {
-  background-color: #2563eb;
+  background-color: var(--color-primary);
+  filter: brightness(90%);
 }
 
 .admin-btn-secondary {
   background-color: #f3f4f6;
-  color: #1f2937;
+  color: var(--color-secondary);
 }
 
 .admin-btn-secondary:hover {
@@ -137,12 +138,13 @@
 }
 
 .admin-btn-success {
-  background-color: #10b981;
+  background-color: var(--color-accent);
   color: #fff;
 }
 
 .admin-btn-success:hover {
-  background-color: #059669;
+  background-color: var(--color-accent);
+  filter: brightness(90%);
 }
 
 /* Badge Styles */
@@ -157,12 +159,12 @@
 
 .admin-badge-blue {
   background-color: #dbeafe;
-  color: #1e40af;
+  color: var(--color-secondary);
 }
 
 .admin-badge-green {
   background-color: #d1fae5;
-  color: #065f46;
+  color: var(--color-accent);
 }
 
 .admin-badge-red {
@@ -226,11 +228,11 @@
   .admin-sidebar {
     width: 4rem;
   }
-  
+
   .admin-sidebar-text {
     display: none;
   }
-  
+
   .admin-stats-grid {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }

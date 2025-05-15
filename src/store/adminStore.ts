@@ -34,7 +34,7 @@ export interface Role {
   updated_at: string;
 }
 
-// Define types for system settings
+// Define types for website settings
 export interface SystemSettings {
   siteName: string;
   siteDescription: string;
@@ -43,9 +43,55 @@ export interface SystemSettings {
   timezone: string;
   dateFormat: string;
   timeFormat: string;
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+    metaKeywords: string;
+    ogTitle: string;
+    ogDescription: string;
+    ogImage: string;
+    twitterCard: string;
+    twitterTitle: string;
+    twitterDescription: string;
+    twitterImage: string;
+    googleVerification: string;
+    bingVerification: string;
+    analyticsId: string;
+  };
+  socialMedia: {
+    facebook: string;
+    twitter: string;
+    instagram: string;
+    linkedin: string;
+    youtube: string;
+  };
+  contactInfo: {
+    email: string;
+    phone: string;
+    address: string;
+    supportHours: string;
+  };
+  emailSettings: {
+    smtp: {
+      host: string;
+      port: string;
+      encryption: string;
+      username: string;
+      password: string;
+    };
+    contactForm: {
+      fromEmail: string;
+      toEmail: string;
+      subjectPrefix: string;
+    };
+    reportIssue: {
+      fromEmail: string;
+      toEmail: string;
+      subjectPrefix: string;
+    };
+  };
   security: {
     enableTwoFactor: boolean;
-    sessionTimeout: number;
     passwordPolicy: {
       minLength: number;
       requireSpecialChars: boolean;
@@ -76,6 +122,7 @@ export interface DesignSettings {
   };
   logo: string;
   favicon: string;
+  siteName: string;
 }
 
 // Define types for admin stats
@@ -147,9 +194,55 @@ export const useAdminStore = create<AdminState>()(
         timezone: 'UTC',
         dateFormat: 'MM/DD/YYYY',
         timeFormat: '12h',
+        seo: {
+          metaTitle: 'RashadAI - AI-Powered Medical Consultation',
+          metaDescription: 'Get instant medical guidance from our advanced AI system trained on millions of medical records. Available 24/7, secure, and affordable.',
+          metaKeywords: 'AI healthcare, medical consultation, online doctor, symptom checker, health AI, medical advice',
+          ogTitle: 'RashadAI - AI-Powered Medical Consultation',
+          ogDescription: 'Get instant medical guidance from our advanced AI system trained on millions of medical records.',
+          ogImage: '',
+          twitterCard: 'summary_large_image',
+          twitterTitle: 'RashadAI - AI-Powered Medical Consultation',
+          twitterDescription: 'Get instant medical guidance from our advanced AI system.',
+          twitterImage: '',
+          googleVerification: '',
+          bingVerification: '',
+          analyticsId: '',
+        },
+        socialMedia: {
+          facebook: 'https://facebook.com/rashadai',
+          twitter: 'https://twitter.com/rashadai',
+          instagram: 'https://instagram.com/rashadai',
+          linkedin: 'https://linkedin.com/company/rashadai',
+          youtube: '',
+        },
+        contactInfo: {
+          email: 'support@rashadai.com',
+          phone: '+201286904277',
+          address: 'Cairo, Egypt',
+          supportHours: '24/7 Chat Support',
+        },
+        emailSettings: {
+          smtp: {
+            host: 'smtp.hostinger.com',
+            port: '465',
+            encryption: 'SSL',
+            username: 'no-reply@kareemamged.com',
+            password: 'Kk010193#',
+          },
+          contactForm: {
+            fromEmail: 'no-reply@kareemamged.com',
+            toEmail: 'work@kareemamged.com',
+            subjectPrefix: '[Contact Form]',
+          },
+          reportIssue: {
+            fromEmail: 'no-reply@kareemamged.com',
+            toEmail: 'work@kareemamged.com',
+            subjectPrefix: '[Issue Report]',
+          },
+        },
         security: {
           enableTwoFactor: false,
-          sessionTimeout: 30,
           passwordPolicy: {
             minLength: 8,
             requireSpecialChars: true,
@@ -178,6 +271,7 @@ export const useAdminStore = create<AdminState>()(
         },
         logo: '',
         favicon: '',
+        siteName: 'RashadAI',
       },
       stats: {
         totalUsers: 0,
@@ -284,8 +378,69 @@ export const useAdminStore = create<AdminState>()(
       },
 
       fetchSystemSettings: async () => {
-        // Implementation will be added when the table is created
-        set({ isLoading: false });
+        set({ isLoading: true });
+        try {
+          // Fetch settings from site_settings table
+          const { data, error } = await supabase
+            .from('site_settings')
+            .select('*')
+            .eq('id', 1)
+            .single();
+
+          if (error) {
+            console.warn('Error fetching system settings:', error);
+            return;
+          }
+
+          if (data) {
+            // Map database fields to store fields
+            const settings: Partial<SystemSettings> = {
+              siteName: data.site_name || get().systemSettings.siteName,
+              siteDescription: data.site_description || get().systemSettings.siteDescription,
+              contactEmail: data.contact_email || get().systemSettings.contactEmail,
+              supportPhone: data.contact_phone || get().systemSettings.supportPhone,
+              // Extract timezone, dateFormat, timeFormat from theme_settings
+              timezone: data.theme_settings?.timezone || get().systemSettings.timezone,
+              dateFormat: data.theme_settings?.dateFormat || get().systemSettings.dateFormat,
+              timeFormat: data.theme_settings?.timeFormat || get().systemSettings.timeFormat,
+              // Extract security and maintenance from theme_settings
+              security: data.theme_settings?.security || get().systemSettings.security,
+              maintenance: data.theme_settings?.maintenance || get().systemSettings.maintenance,
+              // Use the new fields
+              seo: data.seo_settings || get().systemSettings.seo,
+              socialMedia: data.social_media || get().systemSettings.socialMedia,
+              contactInfo: data.contact_info || get().systemSettings.contactInfo,
+              emailSettings: data.email_settings || get().systemSettings.emailSettings,
+            };
+
+            // Update local state
+            set({
+              systemSettings: {
+                ...get().systemSettings,
+                ...settings
+              }
+            });
+
+            // Update global variables if they exist
+            if (typeof window !== 'undefined') {
+              if (settings.siteName) window.siteName = settings.siteName;
+              if (settings.siteDescription) window.siteDescription = settings.siteDescription;
+
+              // Create a safe copy of settings for the global variable
+              if (window.systemSettings) {
+                window.systemSettings = {
+                  ...window.systemSettings,
+                  ...settings
+                };
+              }
+            }
+          }
+        } catch (error: any) {
+          console.error('Error fetching system settings:', error);
+          set({ error: error.message });
+        } finally {
+          set({ isLoading: false });
+        }
       },
 
       fetchDesignSettings: async () => {
@@ -485,7 +640,7 @@ export const useAdminStore = create<AdminState>()(
           let storageStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
 
           // Check database status based on query results
-          if (usersError || consultationsError || reviewsError) {
+          if (usersError || consultationsError) {
             databaseStatus = 'warning';
           }
 
@@ -538,9 +693,9 @@ export const useAdminStore = create<AdminState>()(
             pendingComments: Number(get().stats.pendingComments) || 0,
             totalPendingItems: Number(get().stats.pendingReviews || 0) + Number(get().stats.pendingComments || 0),
             systemStatus: {
-              server: 'healthy',
-              database: 'warning',
-              storage: 'healthy',
+              server: 'healthy' as 'healthy' | 'warning' | 'critical',
+              database: 'warning' as 'healthy' | 'warning' | 'critical',
+              storage: 'healthy' as 'healthy' | 'warning' | 'critical',
             }
           };
 
@@ -559,13 +714,104 @@ export const useAdminStore = create<AdminState>()(
       },
 
       updateSystemSettings: async (settings) => {
-        // Implementation will be added when the table is created
-        set({
-          systemSettings: {
-            ...get().systemSettings,
-            ...settings
+        try {
+          set({ isLoading: true, error: null });
+
+          // Update local state
+          set({
+            systemSettings: {
+              ...get().systemSettings,
+              ...settings
+            }
+          });
+
+          // Try to update in database
+          try {
+            // Get current user session
+            const { data: { session } } = await supabase.auth.getSession();
+            const userId = session?.user?.id || '00000000-0000-0000-0000-000000000000';
+
+            // Prepare data for database
+            const dbData = {
+              id: 1, // Use a fixed ID for the single settings record
+              site_name: settings.siteName || get().systemSettings.siteName,
+              site_description: settings.siteDescription || get().systemSettings.siteDescription,
+              contact_email: settings.contactEmail || get().systemSettings.contactEmail,
+              contact_phone: settings.supportPhone || get().systemSettings.supportPhone,
+              theme_settings: {
+                timezone: settings.timezone || get().systemSettings.timezone,
+                dateFormat: settings.dateFormat || get().systemSettings.dateFormat,
+                timeFormat: settings.timeFormat || get().systemSettings.timeFormat,
+                security: settings.security || get().systemSettings.security,
+                maintenance: settings.maintenance || get().systemSettings.maintenance,
+              },
+              seo_settings: settings.seo || get().systemSettings.seo,
+              social_media: settings.socialMedia || get().systemSettings.socialMedia,
+              contact_info: settings.contactInfo || get().systemSettings.contactInfo,
+              email_settings: settings.emailSettings || get().systemSettings.emailSettings,
+              updated_at: new Date().toISOString(),
+              updated_by: userId,
+            };
+
+            // Try RPC function first
+            try {
+              const { error: rpcError } = await supabase.rpc('update_site_settings', {
+                p_user_id: userId,
+                p_site_name: dbData.site_name,
+                p_site_description: dbData.site_description,
+                p_contact_email: dbData.contact_email,
+                p_contact_phone: dbData.contact_phone,
+                p_theme_settings: dbData.theme_settings,
+                p_seo_settings: dbData.seo_settings,
+                p_social_media: dbData.social_media,
+                p_contact_info: dbData.contact_info,
+                p_email_settings: dbData.email_settings
+              });
+
+              if (rpcError) {
+                console.warn('RPC function failed, falling back to direct update:', rpcError);
+                throw rpcError; // Fall back to direct update
+              }
+            } catch (rpcError) {
+              // Fall back to direct update
+              const { error } = await supabase
+                .from('site_settings')
+                .upsert(dbData);
+
+              if (error) {
+                console.error('Error saving settings to database:', error);
+              }
+            }
+          } catch (dbError) {
+            console.warn('Could not save settings to database:', dbError);
+            // Continue with local update even if database update fails
           }
-        });
+
+          // Update global variables if they exist
+          if (typeof window !== 'undefined') {
+            if (settings.siteName) window.siteName = settings.siteName;
+            if (settings.siteDescription) window.siteDescription = settings.siteDescription;
+
+            // Create a safe copy of settings for the global variable
+            const safeSettings = { ...settings };
+            if (window.systemSettings) {
+              window.systemSettings = {
+                ...window.systemSettings,
+                ...safeSettings
+              };
+            }
+
+            // Update SEO tags if the function exists
+            if (typeof window.updateSEOTags === 'function') {
+              window.updateSEOTags(settings);
+            }
+          }
+
+          set({ isLoading: false });
+        } catch (error) {
+          console.error('Error updating Website settings:', error);
+          set({ isLoading: false, error: 'Failed to update Website settings' });
+        }
       },
 
       updateDesignSettings: async (settings) => {

@@ -26,7 +26,7 @@ interface AdminAuthState {
   signOutAdmin: () => Promise<void>;
   changeAdminPassword: (oldPassword: string, newPassword: string) => Promise<void>;
   setAdminUser: (user: AdminUser | null) => void;
-  updateAdminProfile: (profileData: Partial<AdminUser>) => Promise<void>;
+  updateAdminProfile: (profileData: Partial<AdminUser>) => Promise<AdminUser | null>;
   getAdminProfile: () => Promise<AdminUser | null>;
 }
 
@@ -48,6 +48,10 @@ export const useAdminAuthStore = create<AdminAuthState>()(
         set({ isLoading: true, error: null });
         try {
           console.log('Attempting to sign in admin with email:', email);
+
+          // تخزين بيانات تسجيل الدخول في localStorage للاستخدام في تجديد الجلسة
+          localStorage.setItem('auth_email', email);
+          localStorage.setItem('auth_password', password);
 
           // استخدام الوظيفة الجديدة للتحقق من صحة بيانات المشرف
           const { data, error } = await supabase.rpc('verify_admin_login', {
@@ -76,6 +80,11 @@ export const useAdminAuthStore = create<AdminAuthState>()(
             const message = data ? data.message : 'فشل تسجيل الدخول';
             console.error('Admin login failed:', message);
             set({ error: message });
+
+            // مسح بيانات تسجيل الدخول من localStorage في حالة الفشل
+            localStorage.removeItem('auth_email');
+            localStorage.removeItem('auth_password');
+
             throw new Error(message);
           }
 
@@ -83,6 +92,11 @@ export const useAdminAuthStore = create<AdminAuthState>()(
           if (!data.admin) {
             console.error('Admin login successful but no admin data returned');
             set({ error: 'تم تسجيل الدخول بنجاح ولكن لم يتم إرجاع بيانات المشرف' });
+
+            // مسح بيانات تسجيل الدخول من localStorage في حالة الفشل
+            localStorage.removeItem('auth_email');
+            localStorage.removeItem('auth_password');
+
             throw new Error('تم تسجيل الدخول بنجاح ولكن لم يتم إرجاع بيانات المشرف');
           }
 
@@ -96,6 +110,17 @@ export const useAdminAuthStore = create<AdminAuthState>()(
 
           // تأخير قصير لضمان تحديث الواجهة بشكل صحيح
           await new Promise(resolve => setTimeout(resolve, 300));
+
+          // تسجيل الدخول إلى Supabase أيضًا
+          const { error: authError } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+
+          if (authError) {
+            console.warn('Supabase auth login failed, but admin login succeeded:', authError);
+            // لا نريد إيقاف العملية هنا، فقط نسجل التحذير
+          }
 
           set({ adminUser: adminData });
         } catch (error: any) {
@@ -111,8 +136,14 @@ export const useAdminAuthStore = create<AdminAuthState>()(
       signOutAdmin: async () => {
         set({ isLoading: true, error: null });
         try {
-          // لا نحتاج إلى تسجيل الخروج من Supabase هنا
-          // فقط نقوم بمسح بيانات المشرف من المخزن
+          // تسجيل الخروج من Supabase
+          await supabase.auth.signOut();
+
+          // مسح بيانات تسجيل الدخول من localStorage
+          localStorage.removeItem('auth_email');
+          localStorage.removeItem('auth_password');
+
+          // مسح بيانات المشرف من المخزن
           set({ adminUser: null });
 
           // تأخير قصير لضمان تحديث الواجهة بشكل صحيح

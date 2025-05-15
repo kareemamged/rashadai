@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AlertCircle, Send, CheckCircle, Loader } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAdminStore } from '../store/adminStore';
+import { sendIssueReportEmail } from '../lib/emailService';
 
 interface ReportIssueProps {
   userEmail?: string;
@@ -39,20 +41,45 @@ const ReportIssue: React.FC<ReportIssueProps> = ({ userEmail }) => {
     setSubmitStatus(null);
 
     try {
-      // In a real app, this would send the report to a server
-      // Here we'll simulate a network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get email settings from systemSettings
+      const { systemSettings } = useAdminStore.getState();
+      const fromEmail = systemSettings?.emailSettings?.reportIssue?.fromEmail || 'no-reply@rashadai.com';
+      const toEmail = systemSettings?.emailSettings?.reportIssue?.toEmail || 'issues@rashadai.com';
+      const subjectPrefix = systemSettings?.emailSettings?.reportIssue?.subjectPrefix || '[Issue Report]';
 
-      // Simulate successful submission
-      setSubmitStatus({
-        success: true,
-        message: language === 'ar'
-          ? 'شكرًا على تقريرك! سننظر في هذه المشكلة.'
-          : 'Thank you for your report! We will look into this issue.'
-      });
+      console.log('Sending issue report to:', toEmail);
+      console.log('From:', fromEmail);
+      console.log('Subject:', `${subjectPrefix} ${issueType}`);
+      console.log('Description:', description);
+      console.log('User Email:', userEmail);
 
-      // Reset form
-      setDescription('');
+      // Send the issue report email
+      const success = await sendIssueReportEmail(
+        issueType,
+        description,
+        userEmail
+      );
+
+      if (success) {
+        // Successful submission
+        setSubmitStatus({
+          success: true,
+          message: language === 'ar'
+            ? 'شكرًا على تقريرك! سننظر في هذه المشكلة.'
+            : 'Thank you for your report! We will look into this issue.'
+        });
+
+        // Reset form
+        setDescription('');
+      } else {
+        // Failed submission
+        setSubmitStatus({
+          success: false,
+          message: language === 'ar'
+            ? 'عذراً، حدث خطأ أثناء إرسال تقريرك. يرجى المحاولة مرة أخرى لاحقاً.'
+            : 'Sorry, there was an error sending your report. Please try again later.'
+        });
+      }
 
     } catch (error) {
       setSubmitStatus({

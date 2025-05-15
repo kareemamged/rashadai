@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '../../store/languageStore';
 import { useAdminStore } from '../../store/adminStore';
-import { 
-  Palette, 
-  Type, 
-  Layout as LayoutIcon, 
-  Save, 
-  RotateCcw, 
-  Upload, 
-  Download, 
-  Eye, 
+import { showSuccessNotification, showErrorNotification } from '../../stores/notificationStore';
+import {
+  Palette,
+  Type,
+  Layout as LayoutIcon,
+  Save,
+  RotateCcw,
+  Upload,
+  Download,
+  Eye,
   Check
 } from 'lucide-react';
 
@@ -21,7 +22,7 @@ const DesignControl: React.FC = () => {
   const [isRTL, setIsRTL] = useState(language === 'ar');
   const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'layout'>('colors');
   const [previewMode, setPreviewMode] = useState(false);
-  
+
   // Local state for form values
   const [formValues, setFormValues] = useState({
     colors: {
@@ -38,13 +39,14 @@ const DesignControl: React.FC = () => {
     },
     logo: designSettings.logo,
     favicon: designSettings.favicon,
+    siteName: designSettings.siteName || 'RashadAI',
   });
-  
+
   // Update RTL state when language changes
   useEffect(() => {
     setIsRTL(language === 'ar');
   }, [language]);
-  
+
   // Update local state when designSettings changes
   useEffect(() => {
     setFormValues({
@@ -62,9 +64,10 @@ const DesignControl: React.FC = () => {
       },
       logo: designSettings.logo,
       favicon: designSettings.favicon,
+      siteName: designSettings.siteName || 'RashadAI',
     });
   }, [designSettings]);
-  
+
   // Handle form input changes
   const handleColorChange = (colorName: string, value: string) => {
     setFormValues({
@@ -75,7 +78,7 @@ const DesignControl: React.FC = () => {
       },
     });
   };
-  
+
   const handleFontChange = (fontName: string, value: string) => {
     setFormValues({
       ...formValues,
@@ -85,7 +88,7 @@ const DesignControl: React.FC = () => {
       },
     });
   };
-  
+
   const handleFontSizeChange = (value: 'small' | 'medium' | 'large') => {
     setFormValues({
       ...formValues,
@@ -95,7 +98,7 @@ const DesignControl: React.FC = () => {
       },
     });
   };
-  
+
   // Handle file uploads
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,7 +113,7 @@ const DesignControl: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -124,24 +127,109 @@ const DesignControl: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
-  
+
+  // Handle site name change
+  const handleSiteNameChange = (value: string) => {
+    setFormValues({
+      ...formValues,
+      siteName: value,
+    });
+  };
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateDesignSettings({
-      colors: formValues.colors,
-      fonts: formValues.fonts,
-      logo: formValues.logo,
-      favicon: formValues.favicon,
-    });
-    // Show success message
-    alert(t('admin.design.themeApplied'));
+
+    try {
+      // Update design settings in the store
+      await updateDesignSettings({
+        colors: formValues.colors,
+        fonts: formValues.fonts,
+        logo: formValues.logo,
+        favicon: formValues.favicon,
+        siteName: formValues.siteName,
+      });
+
+      // Apply theme colors to CSS variables
+      const root = document.documentElement;
+
+      // Set CSS variables for colors
+      root.style.setProperty('--color-primary', formValues.colors.primary);
+      root.style.setProperty('--color-secondary', formValues.colors.secondary);
+      root.style.setProperty('--color-accent', formValues.colors.accent);
+      root.style.setProperty('--color-background', formValues.colors.background);
+      root.style.setProperty('--color-text', formValues.colors.text);
+
+      // Set CSS variables for fonts
+      root.style.setProperty('--font-heading', formValues.fonts.heading);
+      root.style.setProperty('--font-body', formValues.fonts.body);
+
+      // Set font size variables
+      root.style.setProperty('--font-size-small', '14px');
+      root.style.setProperty('--font-size-medium', '16px');
+      root.style.setProperty('--font-size-large', '18px');
+
+      // Set base font size based on user selection
+      let fontSize = '16px';
+      if (formValues.fonts.size === 'small') {
+        fontSize = '14px';
+      } else if (formValues.fonts.size === 'large') {
+        fontSize = '18px';
+      }
+      root.style.setProperty('--font-size-base', fontSize);
+
+      // Apply font family to document
+      document.body.style.fontFamily = formValues.fonts.body;
+
+      // Apply heading font to all headings
+      const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      headings.forEach(heading => {
+        (heading as HTMLElement).style.fontFamily = formValues.fonts.heading;
+      });
+
+      // Set favicon if available
+      if (formValues.favicon) {
+        const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+        if (faviconLink) {
+          faviconLink.href = formValues.favicon;
+        } else {
+          const newFavicon = document.createElement('link');
+          newFavicon.rel = 'shortcut icon';
+          newFavicon.href = formValues.favicon;
+          document.head.appendChild(newFavicon);
+        }
+      }
+
+      // Update global variables
+      window.siteName = formValues.siteName;
+      window.designSettings = {
+        logo: formValues.logo,
+        favicon: formValues.favicon,
+        siteName: formValues.siteName
+      };
+
+      // Show success message
+      showSuccessNotification(
+        t('admin.design.themeApplied'),
+        t('admin.design.themeAppliedMessage', 'Your theme changes have been applied successfully.')
+      );
+    } catch (error) {
+      console.error('Error applying theme:', error);
+      showErrorNotification(
+        t('admin.design.themeError'),
+        t('admin.design.themeErrorMessage', 'There was a problem applying your theme changes.')
+      );
+    }
   };
-  
+
   // Handle reset to defaults
   const handleReset = () => {
-    if (window.confirm(t('admin.design.resetConfirmation'))) {
-      setFormValues({
+    // Create a custom confirmation dialog instead of using window.confirm
+    const confirmReset = window.confirm(t('admin.design.resetConfirmation'));
+
+    if (confirmReset) {
+      // Default values
+      const defaultValues = {
         colors: {
           primary: '#3b82f6',
           secondary: '#1e40af',
@@ -156,74 +244,139 @@ const DesignControl: React.FC = () => {
         },
         logo: '',
         favicon: '',
+        siteName: 'RashadAI',
+      };
+
+      // Update form values
+      setFormValues(defaultValues);
+
+      // Apply default theme colors to CSS variables
+      const root = document.documentElement;
+
+      // Set CSS variables for colors
+      root.style.setProperty('--color-primary', defaultValues.colors.primary);
+      root.style.setProperty('--color-secondary', defaultValues.colors.secondary);
+      root.style.setProperty('--color-accent', defaultValues.colors.accent);
+      root.style.setProperty('--color-background', defaultValues.colors.background);
+      root.style.setProperty('--color-text', defaultValues.colors.text);
+
+      // Set CSS variables for fonts
+      root.style.setProperty('--font-heading', defaultValues.fonts.heading);
+      root.style.setProperty('--font-body', defaultValues.fonts.body);
+
+      // Set font size variables
+      root.style.setProperty('--font-size-small', '14px');
+      root.style.setProperty('--font-size-medium', '16px');
+      root.style.setProperty('--font-size-large', '18px');
+      root.style.setProperty('--font-size-base', '16px');
+
+      // Apply font family to document
+      document.body.style.fontFamily = defaultValues.fonts.body;
+
+      // Apply heading font to all headings
+      const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      headings.forEach(heading => {
+        (heading as HTMLElement).style.fontFamily = defaultValues.fonts.heading;
       });
+
+      // Update global variables
+      window.siteName = defaultValues.siteName;
+      window.designSettings = {
+        logo: defaultValues.logo,
+        favicon: defaultValues.favicon,
+        siteName: defaultValues.siteName
+      };
+
+      // Update design settings in the store
+      updateDesignSettings(defaultValues);
+
+      // Show success message
+      showSuccessNotification(
+        t('admin.design.resetSuccess', 'Reset Successful'),
+        t('admin.design.resetSuccessMessage', 'Theme settings have been reset to default values.')
+      );
     }
   };
-  
+
   // Preview component
   const Preview = () => (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-lg font-semibold mb-4">{t('admin.design.preview')}</h3>
-      
+
       <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: formValues.colors.background }}>
-        <h1 
-          className="text-2xl font-bold mb-2" 
-          style={{ 
+        <h1
+          className="text-2xl font-bold mb-2"
+          style={{
             color: formValues.colors.text,
             fontFamily: formValues.fonts.heading,
-            fontSize: formValues.fonts.size === 'large' ? '1.5rem' : 
+            fontSize: formValues.fonts.size === 'large' ? '1.5rem' :
                     formValues.fonts.size === 'small' ? '1.125rem' : '1.25rem'
           }}
         >
-          RashadAI
+          {formValues.siteName}
         </h1>
-        
-        <p 
-          className="mb-4" 
-          style={{ 
+
+        <p
+          className="mb-4"
+          style={{
             color: formValues.colors.text,
             fontFamily: formValues.fonts.body,
-            fontSize: formValues.fonts.size === 'large' ? '1.125rem' : 
+            fontSize: formValues.fonts.size === 'large' ? '1.125rem' :
                     formValues.fonts.size === 'small' ? '0.875rem' : '1rem'
           }}
         >
           {t('home.hero.subtitle')}
         </p>
-        
+
         <div className="flex flex-wrap gap-2">
-          <button 
-            className="px-4 py-2 rounded-lg text-white" 
-            style={{ backgroundColor: formValues.colors.primary }}
+          <button
+            className="px-4 py-2 rounded-lg text-white bg-primary"
+            style={{ fontFamily: formValues.fonts.body }}
           >
             {t('home.hero.ctaButton')}
           </button>
-          
-          <button 
-            className="px-4 py-2 rounded-lg border" 
-            style={{ 
-              borderColor: formValues.colors.secondary,
-              color: formValues.colors.secondary
-            }}
+
+          <button
+            className="px-4 py-2 rounded-lg border text-secondary border-secondary"
+            style={{ fontFamily: formValues.fonts.body }}
           >
             {t('home.hero.secondaryButton')}
           </button>
-          
-          <button 
-            className="px-4 py-2 rounded-lg text-white" 
-            style={{ backgroundColor: formValues.colors.accent }}
+
+          <button
+            className="px-4 py-2 rounded-lg text-white bg-accent"
+            style={{ fontFamily: formValues.fonts.body }}
           >
             {t('common.submit')}
           </button>
         </div>
       </div>
-      
+
+      <div className="mt-6 border-t pt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">{t('admin.design.fontPreview')}</h4>
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs text-gray-500 mb-1">{t('admin.design.headingFont')}</p>
+            <p style={{ fontFamily: formValues.fonts.heading, fontSize: '1.25rem' }}>
+              {formValues.fonts.heading.split(',')[0]} - أبجد هوز حطي كلمن ABCDEFG 123456
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">{t('admin.design.bodyFont')}</p>
+            <p style={{ fontFamily: formValues.fonts.body }}>
+              {formValues.fonts.body.split(',')[0]} - أبجد هوز حطي كلمن ABCDEFG 123456
+            </p>
+          </div>
+        </div>
+      </div>
+
       {formValues.logo && (
         <div className="mb-4">
           <p className="text-sm font-medium text-gray-500 mb-2">{t('admin.design.logo')}</p>
           <img src={formValues.logo} alt="Logo" className="h-12 object-contain" />
         </div>
       )}
-      
+
       {formValues.favicon && (
         <div>
           <p className="text-sm font-medium text-gray-500 mb-2">{t('admin.design.favicon')}</p>
@@ -232,12 +385,12 @@ const DesignControl: React.FC = () => {
       )}
     </div>
   );
-  
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{t('admin.design.title')}</h1>
-        
+
         <div className="flex space-x-2">
           <button
             type="button"
@@ -251,7 +404,7 @@ const DesignControl: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -291,7 +444,7 @@ const DesignControl: React.FC = () => {
                 {t('admin.design.layout')}
               </button>
             </div>
-            
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6">
               {/* Colors Tab */}
@@ -316,7 +469,7 @@ const DesignControl: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.secondaryColor')}
@@ -336,7 +489,7 @@ const DesignControl: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.accentColor')}
@@ -356,7 +509,7 @@ const DesignControl: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.backgroundColor')}
@@ -376,7 +529,7 @@ const DesignControl: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.textColor')}
@@ -398,7 +551,7 @@ const DesignControl: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Fonts Tab */}
               {activeTab === 'fonts' && (
                 <div className="space-y-4">
@@ -410,18 +563,20 @@ const DesignControl: React.FC = () => {
                       value={formValues.fonts.heading}
                       onChange={(e) => handleFontChange('heading', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      style={{ fontFamily: formValues.fonts.heading }}
                     >
-                      <option value="Inter, sans-serif">Inter</option>
-                      <option value="Roboto, sans-serif">Roboto</option>
-                      <option value="Poppins, sans-serif">Poppins</option>
-                      <option value="Montserrat, sans-serif">Montserrat</option>
-                      <option value="Open Sans, sans-serif">Open Sans</option>
-                      <option value="Lato, sans-serif">Lato</option>
-                      <option value="Playfair Display, serif">Playfair Display</option>
-                      <option value="Merriweather, serif">Merriweather</option>
+                      <option value="Inter, sans-serif" style={{ fontFamily: 'Inter, sans-serif' }}>Inter</option>
+                      <option value="Cairo, sans-serif" style={{ fontFamily: 'Cairo, sans-serif' }}>Cairo</option>
+                      <option value="Tajawal, sans-serif" style={{ fontFamily: 'Tajawal, sans-serif' }}>Tajawal</option>
+                      <option value="Roboto, sans-serif" style={{ fontFamily: 'Roboto, sans-serif' }}>Roboto</option>
+                      <option value="Poppins, sans-serif" style={{ fontFamily: 'Poppins, sans-serif' }}>Poppins</option>
+                      <option value="Montserrat, sans-serif" style={{ fontFamily: 'Montserrat, sans-serif' }}>Montserrat</option>
+                      <option value="Open Sans, sans-serif" style={{ fontFamily: 'Open Sans, sans-serif' }}>Open Sans</option>
+                      <option value="Lato, sans-serif" style={{ fontFamily: 'Lato, sans-serif' }}>Lato</option>
+                      <option value="Playfair Display, serif" style={{ fontFamily: 'Playfair Display, serif' }}>Playfair Display</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.bodyFont')}
@@ -430,18 +585,19 @@ const DesignControl: React.FC = () => {
                       value={formValues.fonts.body}
                       onChange={(e) => handleFontChange('body', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      style={{ fontFamily: formValues.fonts.body }}
                     >
-                      <option value="Inter, sans-serif">Inter</option>
-                      <option value="Roboto, sans-serif">Roboto</option>
-                      <option value="Poppins, sans-serif">Poppins</option>
-                      <option value="Montserrat, sans-serif">Montserrat</option>
-                      <option value="Open Sans, sans-serif">Open Sans</option>
-                      <option value="Lato, sans-serif">Lato</option>
-                      <option value="Source Sans Pro, sans-serif">Source Sans Pro</option>
-                      <option value="Nunito, sans-serif">Nunito</option>
+                      <option value="Inter, sans-serif" style={{ fontFamily: 'Inter, sans-serif' }}>Inter</option>
+                      <option value="Cairo, sans-serif" style={{ fontFamily: 'Cairo, sans-serif' }}>Cairo</option>
+                      <option value="Tajawal, sans-serif" style={{ fontFamily: 'Tajawal, sans-serif' }}>Tajawal</option>
+                      <option value="Roboto, sans-serif" style={{ fontFamily: 'Roboto, sans-serif' }}>Roboto</option>
+                      <option value="Poppins, sans-serif" style={{ fontFamily: 'Poppins, sans-serif' }}>Poppins</option>
+                      <option value="Montserrat, sans-serif" style={{ fontFamily: 'Montserrat, sans-serif' }}>Montserrat</option>
+                      <option value="Open Sans, sans-serif" style={{ fontFamily: 'Open Sans, sans-serif' }}>Open Sans</option>
+                      <option value="Lato, sans-serif" style={{ fontFamily: 'Lato, sans-serif' }}>Lato</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.fontSize')}
@@ -481,10 +637,23 @@ const DesignControl: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Layout Tab */}
               {activeTab === 'layout' && (
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('admin.design.siteName')}
+                    </label>
+                    <input
+                      type="text"
+                      value={formValues.siteName}
+                      onChange={(e) => handleSiteNameChange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+                      placeholder={t('admin.design.siteNamePlaceholder')}
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.logo')}
@@ -511,7 +680,7 @@ const DesignControl: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t('admin.design.favicon')}
@@ -540,7 +709,7 @@ const DesignControl: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-6 flex justify-between">
                 <button
                   type="button"
@@ -550,7 +719,7 @@ const DesignControl: React.FC = () => {
                   <RotateCcw className="h-5 w-5 mr-2" />
                   {t('admin.design.resetToDefault')}
                 </button>
-                
+
                 <div className="flex space-x-2">
                   <button
                     type="submit"
@@ -564,7 +733,7 @@ const DesignControl: React.FC = () => {
             </form>
           </div>
         </div>
-        
+
         {/* Preview Panel */}
         <div className={`${previewMode ? 'block' : 'hidden lg:block'}`}>
           <Preview />

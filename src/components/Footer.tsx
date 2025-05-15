@@ -2,34 +2,55 @@ import React from 'react';
 import { FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon, Activity } from 'lucide-react';
 import '../index.css';
 import { useTranslation } from 'react-i18next';
+import { useAdminStore } from '../store/adminStore';
 
 const Footer = () => {
   const { t } = useTranslation();
+  const { systemSettings } = useAdminStore();
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center mb-4">
-              <Activity className="h-8 w-8 text-blue-400 mr-2" />
-              <span className="text-xl font-bold">RashadAI</span>
+              {systemSettings?.designSettings?.logo ? (
+                <img src={systemSettings.designSettings.logo} alt="Logo" className="h-8 w-auto mr-2" />
+              ) : (
+                <Activity className="h-8 w-8 text-blue-400 mr-2" />
+              )}
+              <span className="text-xl font-bold">{systemSettings?.siteName || 'RashadAI'}</span>
             </div>
             <p className="text-gray-400 mb-4 rtl:text-right">
               {t('about.subtitle')}
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <FacebookIcon className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <TwitterIcon className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <InstagramIcon className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <LinkedinIcon className="h-5 w-5" />
-              </a>
+              {systemSettings?.socialMedia?.facebook && (
+                <a href={systemSettings.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <FacebookIcon className="h-5 w-5" />
+                </a>
+              )}
+              {systemSettings?.socialMedia?.twitter && (
+                <a href={systemSettings.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <TwitterIcon className="h-5 w-5" />
+                </a>
+              )}
+              {systemSettings?.socialMedia?.instagram && (
+                <a href={systemSettings.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <InstagramIcon className="h-5 w-5" />
+                </a>
+              )}
+              {systemSettings?.socialMedia?.linkedin && (
+                <a href={systemSettings.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <LinkedinIcon className="h-5 w-5" />
+                </a>
+              )}
+              {systemSettings?.socialMedia?.youtube && (
+                <a href={systemSettings.socialMedia.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
 
@@ -68,7 +89,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm mb-4 md:mb-0 rtl:text-right">
-            {t('footer.copyright')}
+            © 2025 {systemSettings?.siteName || 'RashadAI'}. {t('footer.allRightsReserved')}
           </p>
           <div className="flex space-x-6 rtl:space-x-reverse">
             <a href="/privacy" className="text-gray-500 hover:text-white text-sm transition-colors">{t('footer.privacy').split(' ')[0]}</a>

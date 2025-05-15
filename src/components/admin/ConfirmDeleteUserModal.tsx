@@ -28,7 +28,7 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
   const { t, i18n } = useTranslation();
   const language = i18n.language || 'en';
   const isRTL = language === 'ar';
-  
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   if (!isOpen || !user) return null;
@@ -67,8 +67,8 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
                   <Trash2 className="h-6 w-6 text-red-600" aria-hidden="true" />
                 </div>
                 <h3 className={`text-lg leading-6 font-medium text-gray-900 ${isRTL ? 'mr-3' : 'ml-3'}`}>
-                  {isPendingDeletion 
-                    ? t('admin.users.cancelDeletion') 
+                  {isPendingDeletion
+                    ? t('admin.users.cancelDeletion')
                     : t('admin.users.deleteUser')}
                 </h3>
               </div>
@@ -87,9 +87,9 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
                     <p className="text-sm text-gray-500">
                       {t('admin.users.cancelDeletionConfirmation', {
                         name: user.name || user.email
-                      })}
+                      }).replace('{name}', user.name || user.email)}
                     </p>
-                    
+
                     {user.deletion_scheduled_at && (
                       <div className="mt-4 flex items-center text-sm text-gray-500">
                         <Calendar className="flex-shrink-0 h-4 w-4 text-gray-400" />
@@ -104,9 +104,9 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
                     <p className="text-sm text-gray-500">
                       {t('admin.users.deleteUserConfirmation', {
                         name: user.name || user.email
-                      })}
+                      }).replace('{name}', user.name || user.email)}
                     </p>
-                    
+
                     <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
                       <div className="flex">
                         <div className="flex-shrink-0">
@@ -129,17 +129,17 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
             <button
               type="button"
               className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${
-                isPendingDeletion 
-                  ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' 
+                isPendingDeletion
+                  ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
                   : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
               } text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm`}
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
-              {isSubmitting 
-                ? t('common.loading') 
-                : (isPendingDeletion 
-                    ? t('admin.users.restoreUser') 
+              {isSubmitting
+                ? t('common.loading')
+                : (isPendingDeletion
+                    ? t('admin.users.restoreUser')
                     : t('admin.users.deleteUser'))}
             </button>
             <button
