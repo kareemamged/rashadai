@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد البريد الإلكتروني</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            margin-bottom: 20px;
+        }
+        
+        .logo img {
+            width: 120px;
+            height: auto;
+        }
+        
+        .header {
+            background-color: #4169E1;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #4169E1;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .link {
+            color: #4169E1;
+            word-break: break-all;
+            direction: ltr;
+            text-align: center;
+            display: block;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .social-icons {
+            margin: 15px 0;
+        }
+        
+        .social-icons a {
+            margin: 0 5px;
+            display: inline-block;
+        }
+        
+        .social-icons img {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>تأكيد البريد الإلكتروني</h1>
+            </div>
+
+            <div class="logo">
+                <img src="https://rashadai.com/logo.png" alt="RashadAI Logo">
+            </div>
+
+            <div class="content">
+                <h2>مرحباً ${username}،</h2>
+
+                <p>شكراً لتسجيلك في RashadAI. لإكمال عملية التسجيل، يرجى تأكيد بريدك الإلكتروني بالنقر على الزر أدناه.</p>
+
+                <a href="${confirmationUrl}" class="button">تأكيد البريد الإلكتروني</a>
+
+                <p>أو يمكنك نسخ الرابط التالي ولصقه في متصفحك إذا كان الزر لا يعمل:</p>
+
+                <div class="link">${confirmationUrl}</div>
+
+                <p>إذا لم تقم بإنشاء حساب في RashadAI، يرجى تجاهل هذا البريد الإلكتروني.</p>
+            </div>
+
+            <div class="footer">
+                <p>RashadAI &copy; ${new Date().getFullYear()} جميع الحقوق محفوظة</p>
+
+                <div class="social-icons">
+                    <a href="https://facebook.com/rashadai"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"></a>
+                    <a href="https://twitter.com/rashadai"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter"></a>
+                    <a href="https://instagram.com/rashadai"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

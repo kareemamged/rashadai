@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme Variables */
+:root {
+  /* Default Colors */
+  --color-primary: #3b82f6;
+  --color-secondary: #1e40af;
+  --color-accent: #10b981;
+  --color-background: #f9fafb;
+  --color-text: #1f2937;
+
+  /* Default Fonts */
+  --font-heading: Inter, sans-serif;
+  --font-body: Inter, sans-serif;
+  --font-size-base: 16px;
+  --font-size-small: 14px;
+  --font-size-medium: 16px;
+  --font-size-large: 18px;
+}
+
+/* Apply theme variables to Tailwind classes */
+.text-primary {
+  color: var(--color-primary) !important;
+}
+
+.text-secondary {
+  color: var(--color-secondary) !important;
+}
+
+.text-accent {
+  color: var(--color-accent) !important;
+}
+
+.bg-primary {
+  background-color: var(--color-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary) !important;
+}
+
+.bg-accent {
+  background-color: var(--color-accent) !important;
+}
+
+.border-primary {
+  border-color: var(--color-primary) !important;
+}
+
+.border-secondary {
+  border-color: var(--color-secondary) !important;
+}
+
+.border-accent {
+  border-color: var(--color-accent) !important;
+}
+
+.hover\:bg-primary:hover {
+  background-color: var(--color-primary) !important;
+}
+
+.hover\:bg-secondary:hover {
+  background-color: var(--color-secondary) !important;
+}
+
+.hover\:bg-accent:hover {
+  background-color: var(--color-accent) !important;
+}
+
+.hover\:text-primary:hover {
+  color: var(--color-primary) !important;
+}
+
+.hover\:text-secondary:hover {
+  color: var(--color-secondary) !important;
+}
+
+.hover\:text-accent:hover {
+  color: var(--color-accent) !important;
+}
+
+.hover\:border-primary:hover {
+  border-color: var(--color-primary) !important;
+}
+
+.hover\:border-secondary:hover {
+  border-color: var(--color-secondary) !important;
+}
+
+.hover\:border-accent:hover {
+  border-color: var(--color-accent) !important;
+}
+
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--color-primary) !important;
+}
+
+.focus\:ring-secondary:focus {
+  --tw-ring-color: var(--color-secondary) !important;
+}
+
+.focus\:ring-accent:focus {
+  --tw-ring-color: var(--color-accent) !important;
+}
+
+.focus\:border-primary:focus {
+  border-color: var(--color-primary) !important;
+}
+
+.focus\:border-secondary:focus {
+  border-color: var(--color-secondary) !important;
+}
+
+.focus\:border-accent:focus {
+  border-color: var(--color-accent) !important;
+}
+
+/* Font Classes */
+.font-heading {
+  font-family: var(--font-heading) !important;
+}
+
+.font-body {
+  font-family: var(--font-body) !important;
+}
+
+/* Font Size Classes */
+html, body {
+  font-size: var(--font-size-base);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.text-size-small {
+  font-size: var(--font-size-small) !important;
+}
+
+.text-size-medium {
+  font-size: var(--font-size-medium) !important;
+}
+
+.text-size-large {
+  font-size: var(--font-size-large) !important;
+}
+
+/* Base direction settings */
+html[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+  font-family: 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] * {
+  letter-spacing: 0;
+}
+
+/* Force LTR for English content */
+html[lang="en"] {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+html[lang="en"] body {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Force RTL for Arabic content */
+html[lang="ar"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+html[lang="ar"] body {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* RTL specific styles */
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .rtl-mirror {
+  direction: rtl;
+}
+
+html[dir="rtl"] .rtl-right {
+  text-align: right;
+}
+
+html[dir="rtl"] .rtl-left {
+  text-align: left;
+}
+
+/* Original styles */
+text--gray {
+    --tw-text-opacity: 1;
+    color: rgb(92 93 94);
+}
+
+.tessst {
+    border: none;
+    outline: 0;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate 0.5s ease-in-out;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.fade-animation {
+  animation: fade 0.3s ease-in-out;
+}

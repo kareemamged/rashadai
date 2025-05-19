@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>RashadAI - AI-Powered Medical Consultation</title>
+    <meta name="title" content="RashadAI - AI-Powered Medical Consultation">
+    <meta name="description" content="Get instant medical guidance from our advanced AI system trained on millions of medical records. Available 24/7, secure, and affordable." />
+    <meta name="keywords" content="AI healthcare, medical consultation, online doctor, symptom checker, health AI, medical advice">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rashadai.vercel.app/">
+    <meta property="og:title" content="RashadAI - AI-Powered Medical Consultation">
+    <meta property="og:description" content="Get instant medical guidance from our advanced AI system trained on millions of medical records.">
+    <meta property="og:image" content="https://rashadai.vercel.app/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://rashadai.vercel.app/">
+    <meta property="twitter:title" content="RashadAI - AI-Powered Medical Consultation">
+    <meta property="twitter:description" content="Get instant medical guidance from our advanced AI system.">
+    <meta property="twitter:image" content="https://rashadai.vercel.app/twitter-image.jpg">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://rashadai.vercel.app/">
+
+    <!-- Preload fonts for website -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Dynamic SEO tags - will be updated by WebsiteSettings -->
+    <script>
+      window.updateSEOTags = function(settings) {
+        if (!settings || !settings.seo) return;
+
+        // Update title and meta tags
+        if (settings.seo.metaTitle) {
+          document.title = settings.seo.metaTitle;
+          document.querySelector('meta[name="title"]').setAttribute('content', settings.seo.metaTitle);
+          document.querySelector('meta[property="og:title"]').setAttribute('content', settings.seo.metaTitle);
+          document.querySelector('meta[property="twitter:title"]').setAttribute('content', settings.seo.metaTitle);
+        }
+
+        if (settings.seo.metaDescription) {
+          document.querySelector('meta[name="description"]').setAttribute('content', settings.seo.metaDescription);
+          document.querySelector('meta[property="og:description"]').setAttribute('content', settings.seo.metaDescription);
+          document.querySelector('meta[property="twitter:description"]').setAttribute('content', settings.seo.metaDescription);
+        }
+
+        if (settings.seo.metaKeywords) {
+          document.querySelector('meta[name="keywords"]').setAttribute('content', settings.seo.metaKeywords);
+        }
+
+        if (settings.seo.ogImage) {
+          document.querySelector('meta[property="og:image"]').setAttribute('content', settings.seo.ogImage);
+        }
+
+        if (settings.seo.twitterImage) {
+          document.querySelector('meta[property="twitter:image"]').setAttribute('content', settings.seo.twitterImage);
+        }
+
+        // Add Google Analytics if provided
+        if (settings.seo.analyticsId) {
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = `https://www.googletagmanager.com/gtag/js?id=${settings.seo.analyticsId}`;
+          document.head.appendChild(script);
+
+          const inlineScript = document.createElement('script');
+          inlineScript.innerHTML = `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${settings.seo.analyticsId}');
+          `;
+          document.head.appendChild(inlineScript);
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
