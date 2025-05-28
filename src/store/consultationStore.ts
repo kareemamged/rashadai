@@ -25,8 +25,8 @@ interface ConsultationState {
   stopTyping: () => void;
 }
 
-const GEMINI_API_KEY = "AIzaSyAP0ZPOvbNNleycCmQopCUgXFGvqDKBTjE";
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GEMINI_API_KEY = "AIzaSyCQIn9BwZFwWoa1zDQXHAhm3LYYvQPppMc";
+const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
 
 const SYSTEM_PROMPT = `You are an AI medical assistant. Your role is to:
 1. Only provide general medical information and guidance
